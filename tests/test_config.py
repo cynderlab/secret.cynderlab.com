@@ -7,7 +7,7 @@ def test_defaults(monkeypatch):
         monkeypatch.delenv(var, raising=False)
     s = load_settings()
     assert s.db_path == "data/secrets.db"
-    assert s.base_url == "http://127.0.0.1:8321"
+    assert s.base_url == "http://127.0.0.1:8001"
     assert s.max_secret_bytes == 262144
     assert s.max_ttl_days == 30
     assert s.rate_limit_per_hour == 20

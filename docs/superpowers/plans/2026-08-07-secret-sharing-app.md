@@ -112,7 +112,7 @@ def test_defaults(monkeypatch):
         monkeypatch.delenv(var, raising=False)
     s = load_settings()
     assert s.db_path == "data/secrets.db"
-    assert s.base_url == "http://127.0.0.1:8321"
+    assert s.base_url == "http://127.0.0.1:8001"
     assert s.max_secret_bytes == 262144
     assert s.max_ttl_days == 30
     assert s.rate_limit_per_hour == 20
@@ -154,7 +154,7 @@ class Settings:
 def load_settings() -> Settings:
     return Settings(
         db_path=os.environ.get("SECRET_DB_PATH", "data/secrets.db"),
-        base_url=os.environ.get("SECRET_BASE_URL", "http://127.0.0.1:8321").rstrip("/"),
+        base_url=os.environ.get("SECRET_BASE_URL", "http://127.0.0.1:8001").rstrip("/"),
         max_secret_bytes=int(os.environ.get("SECRET_MAX_BYTES", "262144")),
         max_ttl_days=int(os.environ.get("SECRET_MAX_TTL_DAYS", "30")),
         rate_limit_per_hour=int(os.environ.get("SECRET_RATE_LIMIT_PER_HOUR", "20")),
@@ -1642,7 +1642,7 @@ Expected: all PASS
 
 - [ ] **Step 10: Manual cross-language crypto verification (browser ↔ Python)**
 
-Run: `uv run uvicorn app.main:app --port 8321` and open `http://127.0.0.1:8321`. In the browser devtools console:
+Run: `uv run uvicorn app.main:app --port 8001` and open `http://127.0.0.1:8001`. In the browser devtools console:
 
 ```javascript
 const lk = Uint8Array.from({length: 32}, (_, i) => i);
@@ -1863,7 +1863,7 @@ Expected: all PASS
 
 - [ ] **Step 7: Manual end-to-end check**
 
-With `uv run uvicorn app.main:app --port 8321`: create a secret in the UI (with and without passphrase), open the link in a private window, reveal, confirm the plaintext matches and a reload shows the "gone" state. Also confirm `/s/<slug>` opened **without** the `#key` shows the "incomplete link" state without burning (then the full link still works).
+With `uv run uvicorn app.main:app --port 8001`: create a secret in the UI (with and without passphrase), open the link in a private window, reveal, confirm the plaintext matches and a reload shows the "gone" state. Also confirm `/s/<slug>` opened **without** the `#key` shows the "incomplete link" state without burning (then the full link still works).
 
 - [ ] **Step 8: Commit**
 
@@ -2329,7 +2329,7 @@ git commit -m "feat: expired-secret cleanup job for the systemd timer"
 
 **Interfaces:**
 - Consumes: `python -m app.migrate` (T2), `python -m app.cleanup` (T12), `.env.example` (T1), single-worker constraint (T7).
-- Produces: deployable artifacts. Convention: app lives at `~/apps/secret.cynderlab.com` on the server, `uv` at `%h/.local/bin/uv`, app listens on `127.0.0.1:8321`.
+- Produces: deployable artifacts. Convention: app lives at `~/apps/secret.cynderlab.com` on the server, `uv` at `%h/.local/bin/uv`, app listens on `127.0.0.1:8001`.
 
 - [ ] **Step 1: Write the service unit (migration in ExecStartPre)**
 
@@ -2344,7 +2344,7 @@ After=network-online.target
 WorkingDirectory=%h/apps/secret.cynderlab.com
 EnvironmentFile=%h/apps/secret.cynderlab.com/.env
 ExecStartPre=%h/.local/bin/uv run python -m app.migrate
-ExecStart=%h/.local/bin/uv run uvicorn app.main:app --host 127.0.0.1 --port 8321 --workers 1 --no-server-header
+ExecStart=%h/.local/bin/uv run uvicorn app.main:app --host 127.0.0.1 --port 8001 --workers 1 --no-server-header
 Restart=on-failure
 RestartSec=3
 NoNewPrivileges=true
@@ -2410,7 +2410,7 @@ server {
     access_log /var/log/nginx/secret.cynderlab.com.access.log secrets_privacy;
 
     location / {
-        proxy_pass http://127.0.0.1:8321;
+        proxy_pass http://127.0.0.1:8001;
         proxy_set_header Host $host;
         # Real client IP as seen by Cloudflare; the app trusts this header only
         # because the request arrives via localhost.
@@ -2450,7 +2450,7 @@ after at most 30 days. The database holds no keys, no plaintext, no IPs. Scheme 
 ```bash
 uv sync
 uv run pytest
-uv run uvicorn app.main:app --port 8321 --reload
+uv run uvicorn app.main:app --port 8001 --reload
 ```
 
 Configuration is env-driven; see `.env.example`.
