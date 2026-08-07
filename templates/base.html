@@ -30,10 +30,13 @@
       <img src="{{ static_url('img/logo.png') }}" alt="Cynderlab Secrets logo" height="34">
       <span class="brand-name">secret<span class="accent">.</span>cynderlab</span>
     </a>
-    <nav class="site-nav">
-      <a href="/how-it-works">{{ t('nav_how') }}</a>
-      <a href="/how-it-works#agents">{{ t('nav_agents') }}</a>
-    </nav>
+    <div class="header-right">
+      <nav class="site-nav">
+        <a href="/how-it-works">{{ t('nav_how') }}</a>
+        <a href="/how-it-works#agents" class="nav-agents">{{ t('nav_agents') }}</a>
+      </nav>
+      <a class="cta-btn" href="/#create-form">{{ t('cta_share') }}</a>
+    </div>
   </header>
   <main class="wrap">{% block content %}{% endblock %}</main>
   <footer class="site-footer">

@@ -85,6 +85,15 @@ def test_reveal_page_unknown_or_expired_slug_is_branded_404(client):
     assert 'id="reveal-btn"' not in r.text
 
 
+def test_header_has_share_cta(client):
+    r = client.get("/how-it-works")
+    assert 'class="cta-btn"' in r.text
+    assert 'href="/#create-form"' in r.text
+    assert "Share a secret" in r.text
+    ca = client.get("/", headers={"accept-language": "ca"})
+    assert "Comparteix un secret" in ca.text
+
+
 def test_home_is_clean_of_explanations(client):
     r = client.get("/")
     assert 'id="tab-human"' not in r.text        # explanation moved to its own page
