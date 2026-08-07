@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block title %}{{ t('hiw_title') }}{% endblock %}
+{% set gh = "https://github.com/cynderlab/secret.cynderlab.com/blob/main/" %}
 {% block content %}
 <section class="explain">
   <p class="eyebrow">{{ t('hiw_eyebrow') }}</p>
@@ -11,6 +12,32 @@
     <li>{{ t('hiw_step3') | safe }}</li>
   </ol>
   <p>{{ t('hiw_pass') }}</p>
+
+  <h2>{{ t('hiw_diagram_h') }}</h2>
+  <pre class="terminal diagram"><code>{{ t('hiw_diagram') }}</code></pre>
+
+  <h2>{{ t('hiw_g_h') }}</h2>
+  <ul>
+    <li>{{ t('hiw_g1') | safe }}</li>
+    <li>{{ t('hiw_g2') | safe }}</li>
+    <li>{{ t('hiw_g3') | safe }}</li>
+  </ul>
+  <p class="muted">{{ t('hiw_g_caveat') }}</p>
+
+  <h2>{{ t('hiw_audit_h') }}</h2>
+  <p>{{ t('hiw_audit_intro') }}</p>
+  <ul class="audit-list">
+    <li><a href="{{ gh }}static/js/crypto.js"><code>static/js/crypto.js</code></a> —
+      {{ t('hiw_audit_crypto_js') }}</li>
+    <li><a href="{{ gh }}static/js/create.js"><code>static/js/create.js</code></a> —
+      {{ t('hiw_audit_create_js') }}</li>
+    <li><a href="{{ gh }}static/js/reveal.js"><code>static/js/reveal.js</code></a> —
+      {{ t('hiw_audit_reveal_js') }}</li>
+    <li><a href="{{ gh }}app/store.py"><code>app/store.py</code></a> —
+      {{ t('hiw_audit_store_py') }}</li>
+    <li><a href="{{ gh }}app/crypto.py"><code>app/crypto.py</code></a> —
+      {{ t('hiw_audit_crypto_py') }}</li>
+  </ul>
 
   <p class="row"><a class="ghost-btn" href="/">{{ t('hiw_back') }}</a></p>
 </section>

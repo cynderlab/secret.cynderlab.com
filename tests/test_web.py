@@ -112,6 +112,17 @@ def test_how_it_works_page_is_humans_only(client):
     assert "curl" not in r.text                  # agents quickstart removed
 
 
+def test_how_it_works_has_diagram_and_audit_links(client):
+    r = client.get("/how-it-works")
+    assert 'class="terminal diagram"' in r.text  # ascii flow schema
+    base = "https://github.com/cynderlab/secret.cynderlab.com/blob/main/"
+    for path in ("static/js/crypto.js", "static/js/create.js", "static/js/reveal.js",
+                 "app/store.py", "app/crypto.py"):
+        assert base + path in r.text
+    ca = client.get("/how-it-works", headers={"accept-language": "ca"})
+    assert "mai veu claus" in ca.text            # translated diagram
+
+
 def test_security_headers_on_every_response(client):
     r = client.get("/")
     csp = r.headers["content-security-policy"]
