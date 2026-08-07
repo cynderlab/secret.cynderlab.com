@@ -80,8 +80,8 @@ def test_llms_txt_documents_api(client):
     r = client.get("/llms.txt")
     assert r.status_code == 200
     assert "text/plain" in r.headers["content-type"]
-    for fragment in ("POST /api/secrets", "/reveal", "/consume", "one read",
-                     "https://secret.test"):
+    for fragment in ("POST https://secret.test/api/secrets", "/reveal", "/consume",
+                     "one read"):
         assert fragment in r.text
 
 
