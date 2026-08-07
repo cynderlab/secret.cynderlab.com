@@ -26,6 +26,19 @@
     $("create-btn").disabled = false;
   }
 
+  // QR is generated locally (vendored qrcode.js): the link — and the key inside
+  // it — never leaves the browser.
+  function drawQr(link) {
+    try {
+      const qr = qrcode(0, "M");
+      qr.addData(link);
+      qr.make();
+      $("result-qr").src = qr.createDataURL(4, 0);
+    } catch (e) {
+      document.querySelector(".qr-row").hidden = true;   // link still works without it
+    }
+  }
+
   form.addEventListener("submit", async event => {
     event.preventDefault();
     $("create-error").hidden = true;
@@ -55,8 +68,10 @@
           return fail(body.detail || `Could not store the secret (HTTP ${res.status}).`);
         }
         const body = await res.json();
-        $("result-link").textContent = `${location.origin}/s/${slug}#${enc.key}`;
+        const link = `${location.origin}/s/${slug}#${enc.key}`;
+        $("result-link").textContent = link;
         $("result-expiry").textContent = `# expires ${body.expires_at} if never read`;
+        drawQr(link);
         form.hidden = true;
         $("result-panel").hidden = false;
         return;

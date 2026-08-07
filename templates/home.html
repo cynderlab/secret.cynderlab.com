@@ -32,6 +32,13 @@
     <p class="mono link-line"><output id="result-link"></output></p>
     <p class="mono ember">READS LEFT: 1 ▓▓▓▓▓▓▓▓▓▓ — burns on first open</p>
     <p class="mono muted" id="result-expiry"></p>
+    <div class="qr-row">
+      <div class="qr-tile">
+        <img id="result-qr" alt="QR code containing the secret link" width="148" height="148">
+      </div>
+      <p class="mono muted qr-caption">scan to open on another device —<br>the QR is drawn
+      right here in your browser,<br>the key inside it never left this page</p>
+    </div>
     <div class="row">
       <button type="button" id="copy-btn">Copy link</button>
       <a href="/" class="ghost-btn">New secret</a>
@@ -43,6 +50,7 @@
 and for machines.</p>
 {% endblock %}
 {% block scripts %}
+<script src="/static/js/vendor/qrcode.js"></script>
 <script src="/static/js/crypto.js"></script>
 <script src="/static/js/create.js"></script>
 {% endblock %}

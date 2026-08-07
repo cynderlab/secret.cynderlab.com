@@ -21,6 +21,13 @@ def test_static_assets_served(client):
     assert client.get("/static/js/create.js").status_code == 200
     assert client.get("/static/img/logo.png").status_code == 200
     assert client.get("/static/img/og.png").status_code == 200
+    assert client.get("/static/js/vendor/qrcode.js").status_code == 200
+
+
+def test_home_has_qr_slot_for_generated_link(client):
+    r = client.get("/")
+    assert 'id="result-qr"' in r.text
+    assert "/static/js/vendor/qrcode.js" in r.text
 
 
 def test_social_card_metadata(client):

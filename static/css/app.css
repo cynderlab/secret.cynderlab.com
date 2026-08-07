@@ -59,6 +59,12 @@ button:hover { background: var(--cyan-bright); border-color: var(--cyan-bright);
 .error { color: var(--ember); margin-top: .75rem; }
 
 .terminal { margin-top: 1.5rem; overflow-x: auto; }
+.qr-row { display: flex; gap: 1.25rem; align-items: center; margin-top: 1rem;
+  flex-wrap: wrap; }
+.qr-tile { background: #FFFFFF; padding: 12px; border-radius: 10px; line-height: 0;
+  box-shadow: 0 0 0 1px var(--line), 0 0 24px rgba(44, 185, 221, .12); }
+.qr-tile img { width: 148px; height: 148px; image-rendering: pixelated; }
+.qr-caption { font-size: .8rem; line-height: 1.5; }
 .terminal p { margin-block: .35rem; }
 .link-line output { word-break: break-all; color: var(--cyan-bright); }
 pre.terminal { line-height: 1.5; }
