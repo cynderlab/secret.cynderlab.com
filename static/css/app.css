@@ -111,68 +111,40 @@ pre.terminal { line-height: 1.5; }
   @keyframes rise { from { opacity: 0; transform: translateY(6px); } }
 }
 
-/* ---- 404: glitch + forensics terminal + embers ---- */
-.e404 { position: relative; text-align: left; }
-.e404 .eyebrow { margin-bottom: 0; }
-.glitch { position: relative; font-size: clamp(5rem, 22vw, 11rem); font-weight: 700;
-  line-height: 1; letter-spacing: -.04em; color: var(--text); margin-bottom: 1rem; }
-.glitch::before, .glitch::after { content: attr(data-text); position: absolute;
-  inset: 0; overflow: hidden; opacity: 0; pointer-events: none; }
-.glitch::before { color: var(--cyan); z-index: -1; }
-.glitch::after { color: var(--ember); z-index: -2; }
-
-.e404-terminal { min-height: 15rem; }
-.e404-terminal p { margin-block: .3rem; }
-.e404-terminal .cmd { color: var(--text); }
-.e404-terminal .out { color: var(--muted); }
-.e404-terminal .out.ember { color: var(--ember); }
-.e404-terminal .hold { visibility: hidden; }
-.e404-terminal .typing::after { content: "▊"; color: var(--cyan);
-  animation: blink 1s steps(1) infinite; }
-@keyframes blink { 50% { opacity: 0; } }
-
-.embers { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
-.embers span { position: absolute; bottom: -8px; width: 5px; height: 5px;
-  border-radius: 50%; background: var(--ember); opacity: 0; }
-.embers span:nth-child(1) { left: 6%;  }
-.embers span:nth-child(2) { left: 18%; width: 3px; height: 3px; }
-.embers span:nth-child(3) { left: 33%; }
-.embers span:nth-child(4) { left: 47%; width: 4px; height: 4px; }
-.embers span:nth-child(5) { left: 61%; }
-.embers span:nth-child(6) { left: 72%; width: 3px; height: 3px; }
-.embers span:nth-child(7) { left: 85%; }
-.embers span:nth-child(8) { left: 94%; width: 4px; height: 4px; }
+/* ---- 404: one friendly card, a link crumbling to ash ---- */
+.e404-card { max-width: 36rem; margin-inline: auto; padding: 2rem; }
+.e404-h { font-size: 1.5rem; margin-bottom: .75rem; }
+.e404-card .row { margin-top: 1.5rem; }
+.vanish { font-size: clamp(1.1rem, 4vw, 1.5rem); letter-spacing: .06em;
+  color: var(--cyan-bright); margin-block: 1.25rem 1.75rem; }
+.vanish span { display: inline-block; }
 
 @media (prefers-reduced-motion: no-preference) {
-  .glitch { animation: flicker 4s infinite; }
-  .glitch::before { opacity: .85; animation: glitch-a 3.2s infinite steps(2, jump-none); }
-  .glitch::after  { opacity: .85; animation: glitch-b 2.7s infinite steps(2, jump-none); }
-  @keyframes flicker { 0%, 91%, 94%, 100% { opacity: 1; } 92% { opacity: .55; } }
-  @keyframes glitch-a {
-    0%, 100% { clip-path: inset(0 0 92% 0); transform: translate(-4px, -2px); }
-    20% { clip-path: inset(28% 0 54% 0); transform: translate(5px, 1px); }
-    40% { clip-path: inset(64% 0 18% 0); transform: translate(-5px, 2px); }
-    60% { clip-path: inset(12% 0 74% 0); transform: translate(4px, -1px); }
-    80% { clip-path: inset(80% 0 4% 0); transform: translate(-3px, 1px); }
+  .vanish span { animation: charburn 6s ease-in-out infinite; }
+  @keyframes charburn {
+    0%, 30%  { opacity: 1; transform: none; color: inherit; }
+    38%      { color: var(--ember); opacity: 1; transform: translateY(-2px); }
+    48%      { color: var(--ember); opacity: 0; transform: translateY(-16px) rotate(12deg); }
+    82%      { opacity: 0; transform: translateY(-16px); }
+    88%      { opacity: 0; transform: none; }
+    100%     { opacity: 1; color: inherit; }
   }
-  @keyframes glitch-b {
-    0%, 100% { clip-path: inset(84% 0 6% 0); transform: translate(4px, 2px); }
-    25% { clip-path: inset(8% 0 82% 0); transform: translate(-5px, -1px); }
-    50% { clip-path: inset(48% 0 38% 0); transform: translate(5px, -2px); }
-    75% { clip-path: inset(22% 0 62% 0); transform: translate(-4px, 1px); }
-  }
-  .embers span { animation: rise-ember 5s linear infinite; }
-  .embers span:nth-child(2) { animation-duration: 6.5s; animation-delay: 1.2s; }
-  .embers span:nth-child(3) { animation-duration: 4.4s; animation-delay: .6s; }
-  .embers span:nth-child(4) { animation-duration: 7s;   animation-delay: 2.1s; }
-  .embers span:nth-child(5) { animation-duration: 5.6s; animation-delay: .3s; }
-  .embers span:nth-child(6) { animation-duration: 6.2s; animation-delay: 1.7s; }
-  .embers span:nth-child(7) { animation-duration: 4.8s; animation-delay: .9s; }
-  .embers span:nth-child(8) { animation-duration: 5.9s; animation-delay: 2.6s; }
-  @keyframes rise-ember {
-    0% { transform: translateY(0) translateX(0); opacity: 0; }
-    8% { opacity: .9; }
-    60% { opacity: .5; transform: translateY(-60vh) translateX(8px); }
-    100% { transform: translateY(-95vh) translateX(-6px); opacity: 0; }
-  }
+  .vanish span:nth-child(1)  { animation-delay: .00s; }
+  .vanish span:nth-child(2)  { animation-delay: .12s; }
+  .vanish span:nth-child(3)  { animation-delay: .24s; }
+  .vanish span:nth-child(4)  { animation-delay: .36s; }
+  .vanish span:nth-child(5)  { animation-delay: .48s; }
+  .vanish span:nth-child(6)  { animation-delay: .60s; }
+  .vanish span:nth-child(7)  { animation-delay: .72s; }
+  .vanish span:nth-child(8)  { animation-delay: .84s; }
+  .vanish span:nth-child(9)  { animation-delay: .96s; }
+  .vanish span:nth-child(10) { animation-delay: 1.08s; }
+  .vanish span:nth-child(11) { animation-delay: 1.20s; }
+  .vanish span:nth-child(12) { animation-delay: 1.32s; }
+  .vanish span:nth-child(13) { animation-delay: 1.44s; }
+  .vanish span:nth-child(14) { animation-delay: 1.56s; }
+  .vanish span:nth-child(15) { animation-delay: 1.68s; }
+  .vanish span:nth-child(16) { animation-delay: 1.80s; }
+  .vanish span:nth-child(17) { animation-delay: 1.92s; }
+  .vanish span:nth-child(18) { animation-delay: 2.04s; }
 }

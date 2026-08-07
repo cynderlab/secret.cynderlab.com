@@ -133,18 +133,19 @@ def test_html_404_is_branded(client):
     assert "text/html" in r.headers["content-type"]
 
 
-def test_404_page_has_glitch_terminal_show(client):
+def test_404_page_is_a_friendly_card(client):
     r = client.get("/does-not-exist")
-    assert 'class="glitch mono"' in r.text        # animated 404 headline
-    assert 'id="e404-terminal"' in r.text         # typed forensics session
+    assert "e404-card" in r.text                  # single tidy card
+    assert 'class="vanish mono"' in r.text        # link-turning-to-ash animation
     assert 'cd ~' in r.text                       # the way home
-    assert "/static/js/e404.js" in r.text
+    assert "glitch" not in r.text                 # the old heavy layout is gone
+    assert "e404-terminal" not in r.text
 
 
 def test_other_errors_keep_plain_layout(client):
     r = client.post("/privacy")                   # 405 method not allowed
     assert r.status_code == 405
-    assert 'id="e404-terminal"' not in r.text
+    assert "e404-card" not in r.text
 
 
 def test_api_404_stays_json(client):
