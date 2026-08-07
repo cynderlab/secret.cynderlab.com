@@ -74,3 +74,19 @@ def test_robots_txt(client):
     assert r.status_code == 200
     assert "Disallow: /s/" in r.text
     assert "Disallow: /api/" in r.text
+
+
+def test_llms_txt_documents_api(client):
+    r = client.get("/llms.txt")
+    assert r.status_code == 200
+    assert "text/plain" in r.headers["content-type"]
+    for fragment in ("POST /api/secrets", "/reveal", "/consume", "one read",
+                     "https://secret.test"):
+        assert fragment in r.text
+
+
+def test_privacy_and_legal_pages(client):
+    p = client.get("/privacy")
+    assert p.status_code == 200 and "CYNDERLAB DIGITAL SL" in p.text
+    l = client.get("/legal")
+    assert l.status_code == 200 and "B27584010" in l.text

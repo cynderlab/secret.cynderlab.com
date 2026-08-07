@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Privacy policy — Cynderlab Secrets{% endblock %}
+{% block content %}
+<article class="explain">
+  <h1 class="mono">Privacy policy</h1>
+  <p class="lede">Short version: we designed this service so that there is almost nothing about
+  you for us to have.</p>
+
+  <h2>What we store</h2>
+  <ul>
+    <li><strong>The encrypted secret</strong> (an AES-256-GCM blob), its creation and expiry
+      timestamps, and whether a passphrase was set. We never hold the decryption key: it exists
+      only in the link, so we cannot read your secrets — by construction, not by promise.</li>
+    <li><strong>Nothing else in the database.</strong> No accounts, no emails, no IP addresses,
+      no cookies, no analytics, no third-party requests.</li>
+  </ul>
+
+  <h2>What we process transiently</h2>
+  <ul>
+    <li>Your IP address, in memory only, to rate-limit secret creation. It is never written to
+      the database.</li>
+    <li>Standard web-server logs (IP, path, timestamp) kept briefly for security and abuse
+      response. Secret links carry the key after the <code>#</code>, which browsers never send —
+      so keys cannot appear in logs. API requests carry keys in request bodies, which are not
+      logged.</li>
+    <li>If you use the <code>/api/secrets</code> endpoint, the plaintext passes through server
+      memory during encryption/decryption and is immediately discarded. Use the web UI or the
+      <code>/encrypted</code> endpoint if you prefer that the server never sees plaintext.</li>
+  </ul>
+
+  <h2>Retention</h2>
+  <p>Secrets are deleted on first read, at expiry (30 days maximum), and swept hourly by an
+  automated cleanup job. Deleted means deleted: there are no backups of secret content.</p>
+
+  <h2>Your rights &amp; contact</h2>
+  <p>Data controller: CYNDERLAB DIGITAL SL, Vic (Barcelona), Spain. For any privacy request
+  (GDPR arts. 15–22) write to <a href="mailto:hola@cynderlab.com">hola@cynderlab.com</a>. Given
+  the design, in most cases the honest answer will be: we hold no data about you.</p>
+</article>
+{% endblock %}
