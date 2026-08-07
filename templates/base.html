@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Cynderlab Secrets — burn after reading{% endblock %}</title>
+  <meta name="description" content="Share a secret with a link that self-destructs after one read. Encrypted in your browser; the server never sees the key.">
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/">
+      <img src="/static/img/logo.png" alt="Cynderlab logo" height="34">
+      <span class="brand-name">secret<span class="accent">.</span>cynderlab</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/#how-it-works">How it works</a>
+      <a href="/#agents">For agents</a>
+    </nav>
+  </header>
+  <main class="wrap">{% block content %}{% endblock %}</main>
+  <footer class="site-footer">
+    <p class="mono ember">// burn after reading</p>
+    <nav>
+      <a href="https://github.com/cynderlab/secret.cynderlab.com">Source on GitHub</a>
+      <a href="/privacy">Privacy policy</a>
+      <a href="/legal">Legal notice</a>
+      <a href="https://cynderlab.com">cynderlab.com</a>
+    </nav>
+    <p class="footer-legal">CYNDERLAB DIGITAL SL · CIF B27584010 · Vic (Barcelona) ·
+      <a href="mailto:hola@cynderlab.com">hola@cynderlab.com</a></p>
+  </footer>
+  {% block scripts %}{% endblock %}
+</body>
+</html>
