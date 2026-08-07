@@ -23,9 +23,8 @@
       response. Secret links carry the key after the <code>#</code>, which browsers never send —
       so keys cannot appear in logs. API requests carry keys in request bodies, which are not
       logged.</li>
-    <li>If you use the <code>/api/secrets</code> endpoint, the plaintext passes through server
-      memory during encryption/decryption and is immediately discarded. Use the web UI or the
-      <code>/encrypted</code> endpoint if you prefer that the server never sees plaintext.</li>
+    <li>Nothing else: every secret is encrypted and decrypted <strong>in your browser</strong>,
+      so the server only ever handles encrypted blobs — it never sees plaintext or keys.</li>
   </ul>
 
   <h2>Retention</h2>

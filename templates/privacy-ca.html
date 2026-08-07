@@ -23,10 +23,8 @@
       resposta a abusos. Els links de secrets porten la clau després del <code>#</code>, que
       els navegadors mai envien — les claus no poden aparèixer als logs. Les peticions API
       porten les claus al cos de la petició, que no es registra.</li>
-    <li>Si fas servir l'endpoint <code>/api/secrets</code>, el text en clar passa per la
-      memòria del servidor durant el xifrat/desxifrat i es descarta immediatament. Fes servir
-      la web o l'endpoint <code>/encrypted</code> si prefereixes que el servidor no vegi mai
-      el text en clar.</li>
+    <li>Res més: tots els secrets es xifren i desxifren <strong>al teu navegador</strong>,
+      així que el servidor només manipula blobs xifrats — mai veu text en clar ni claus.</li>
   </ul>
 
   <h2>Retenció</h2>

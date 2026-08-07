@@ -4,8 +4,7 @@ One-time secret sharing by [Cynderlab](https://cynderlab.com). Paste a secret, g
 first read burns it. The decryption key lives only in the link — the server stores an
 AES-256-GCM blob it cannot decrypt.
 
-**Live at [secret.cynderlab.com](https://secret.cynderlab.com)** · API docs for agents at
-[`/llms.txt`](https://secret.cynderlab.com/llms.txt)
+**Live at [secret.cynderlab.com](https://secret.cynderlab.com)**
 
 ## Features
 
@@ -14,8 +13,6 @@ AES-256-GCM blob it cannot decrypt.
 - **Key in the URL, never on the server** — a stolen database is a pile of undecryptable blobs.
 - **Zero-knowledge web flow** — the browser encrypts with WebCrypto; the key travels in the
   URL fragment (`#`), which browsers never send to any server.
-- **Agent-friendly API** — plain JSON over `curl`; the machine-readable contract lives at
-  `/llms.txt`, and the home page explains the flow for humans and machines alike.
 - **Optional expiry** — calendar picker, 30-day maximum; expired secrets are never served and
   are swept hourly.
 - **Optional passphrase** — a second factor mixed into the key derivation, never stored.
@@ -25,11 +22,11 @@ AES-256-GCM blob it cannot decrypt.
 
 ## Security model, in one paragraph
 
-The web UI encrypts in your browser (WebCrypto); the key rides in the URL fragment (`#`),
-which browsers never transmit. The API path encrypts/decrypts in server memory only (key in
-POST bodies, never stored, never logged). Every secret is destroyed on first read and expires
-after at most 30 days. The database holds no keys, no plaintext, no IPs. Broken links —
-missing key, expired, already read — all resolve to the same 404.
+Everything cryptographic happens in your browser (WebCrypto): key generation, encryption,
+decryption. The key rides in the URL fragment (`#`), which browsers never transmit, and the
+server only ever stores and serves encrypted blobs. Every secret is destroyed on first read
+and expires after at most 30 days. The database holds no keys, no plaintext, no IPs. Broken
+links — missing key, expired, already read — all resolve to the same 404.
 
 ### Crypto scheme (`cynderlab.secret.v1`)
 
@@ -45,30 +42,18 @@ Implemented twice — `app/crypto.py` (server) and `static/js/crypto.js` (browse
 together by a pinned test vector (`tests/test_crypto.py`) plus `verify_crypto.mjs`, a Node
 script that encrypts in JS and decrypts in Python.
 
-## API in 30 seconds
+## Transport endpoints (browser only)
 
-```bash
-# create (server encrypts in memory; the key is returned once, inside the link)
-curl -s https://secret.cynderlab.com/api/secrets \
-  -H 'content-type: application/json' \
-  -d '{"secret": "the payload", "expires_at": "2026-09-01"}'
-# -> {"slug": "...", "link": "https://secret.cynderlab.com/s/<slug>#<key>", ...}
-
-# reveal (burns it; key = the part after '#')
-curl -s https://secret.cynderlab.com/api/secrets/<slug>/reveal \
-  -H 'content-type: application/json' -d '{"key": "<key>"}'
-```
+The server exposes only ciphertext transport — every byte of plaintext and every key stays
+in the browser:
 
 | Endpoint | Method | Purpose |
 |---|---|---|
-| `/api/secrets` | POST | Create (server-side encryption, in memory only) |
-| `/api/secrets/encrypted` | POST | Create from a pre-encrypted blob (what the web UI does) |
+| `/api/secrets/encrypted` | POST | Store a blob the browser already encrypted |
 | `/api/secrets/{slug}` | GET | Metadata check — does **not** burn |
 | `/api/secrets/{slug}/consume` | POST | Burn and return the ciphertext (browser decrypts) |
-| `/api/secrets/{slug}/reveal` | POST | Burn and return the plaintext (server decrypts) |
 
-A reveal with a wrong key or passphrase still burns the secret (HTTP 410) — no oracle, no
-retries, by design. Full contract: [`/llms.txt`](https://secret.cynderlab.com/llms.txt).
+There is deliberately no endpoint that accepts or returns plaintext.
 
 ## Stack
 
@@ -79,7 +64,7 @@ FastAPI · SQLite (stdlib `sqlite3`, WAL, no ORM) · Jinja2 · vanilla JS + WebC
 app/            config, db + migrations runner, crypto, store, api, web, ratelimit, cleanup
 migrations/     numbered .sql files, applied by `python -m app.migrate` (ExecStartPre)
 templates/      Jinja2 pages (home, how-it-works, reveal, legal, errors)
-static/         css, fonts (self-hosted), crypto.js/create.js/reveal.js/tabs.js
+static/         css, fonts (self-hosted), crypto.js/create.js/reveal.js
 deploy/         systemd user units + cleanup timer + nginx origin config
 tests/          48 tests: crypto vectors, burn semantics, api, rate limit, headers, pages
 ```

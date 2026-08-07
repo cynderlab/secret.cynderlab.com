@@ -4,40 +4,14 @@
 <section class="explain">
   <p class="eyebrow">{{ t('hiw_eyebrow') }}</p>
   <h1 class="mono">{{ t('hiw_h1') }}</h1>
-  <div class="mode-toggle" role="tablist" aria-label="reader mode">
-    <span class="mono muted">$ whoami →</span>
-    <button type="button" id="tab-human" class="tab is-active" role="tab"
-            aria-selected="true" aria-controls="how-it-works">{{ t('tab_human') }}</button>
-    <button type="button" id="tab-agent" class="tab" role="tab"
-            aria-selected="false" aria-controls="agents">{{ t('tab_machine') }}</button>
-  </div>
 
-  <div id="how-it-works" role="tabpanel">
-    <ol>
-      <li>{{ t('hiw_step1') | safe }}</li>
-      <li>{{ t('hiw_step2') | safe }}</li>
-      <li>{{ t('hiw_step3') | safe }}</li>
-    </ol>
-    <p>{{ t('hiw_pass') }}</p>
-  </div>
-
-  <div id="agents" role="tabpanel" hidden>
-    <p>{{ t('hiw_agents_intro') | safe }}</p>
-    <pre class="terminal"><code># create (server encrypts in memory, key returned once in the link)
-curl -s https://secret.cynderlab.com/api/secrets \
-  -H 'content-type: application/json' \
-  -d '{"secret": "the payload", "expires_at": "2026-09-01"}'
-
-# reveal (burns the secret; key = the part after '#' in the link)
-curl -s https://secret.cynderlab.com/api/secrets/&lt;slug&gt;/reveal \
-  -H 'content-type: application/json' \
-  -d '{"key": "&lt;key&gt;"}'</code></pre>
-    <p class="muted">{{ t('hiw_agents_outro') }}</p>
-  </div>
+  <ol>
+    <li>{{ t('hiw_step1') | safe }}</li>
+    <li>{{ t('hiw_step2') | safe }}</li>
+    <li>{{ t('hiw_step3') | safe }}</li>
+  </ol>
+  <p>{{ t('hiw_pass') }}</p>
 
   <p class="row"><a class="ghost-btn" href="/">{{ t('hiw_back') }}</a></p>
 </section>
-{% endblock %}
-{% block scripts %}
-<script src="{{ static_url('js/tabs.js') }}"></script>
 {% endblock %}

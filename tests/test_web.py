@@ -54,23 +54,26 @@ def test_social_card_metadata(client):
 
 
 def test_secret_page_social_card_override(client):
-    body = client.post("/api/secrets", json={"secret": "x"}).json()
-    r = client.get(f"/s/{body['slug']}")
+    from conftest import make_secret
+    slug, _ = make_secret(client)
+    r = client.get(f"/s/{slug}")
     assert "Someone sent you a secret" in r.text                # og:title for shared links
     assert "read exactly once" in r.text
 
 
 def test_reveal_page_renders_shell(client):
-    body = client.post("/api/secrets", json={"secret": "x"}).json()
-    r = client.get(f"/s/{body['slug']}")
+    from conftest import make_secret
+    slug, _ = make_secret(client)
+    r = client.get(f"/s/{slug}")
     assert r.status_code == 200
-    assert f'data-slug="{body["slug"]}"' in r.text
+    assert f'data-slug="{slug}"' in r.text
     assert 'id="reveal-btn"' in r.text
 
 
 def test_reveal_page_never_contains_secret_data(client):
-    body = client.post("/api/secrets", json={"secret": "topsecret123"}).json()
-    r = client.get(f"/s/{body['slug']}")
+    from conftest import make_secret
+    slug, _ = make_secret(client, secret=b"topsecret123")
+    r = client.get(f"/s/{slug}")
     assert "topsecret123" not in r.text          # shell only; JS fetches ciphertext on click
 
 
@@ -101,13 +104,12 @@ def test_home_is_clean_of_explanations(client):
     assert '/how-it-works' in r.text             # header links to the new page
 
 
-def test_how_it_works_page_with_dual_toggle(client):
+def test_how_it_works_page_is_humans_only(client):
     r = client.get("/how-it-works")
     assert r.status_code == 200
-    for element_id in ("tab-human", "tab-agent", "how-it-works", "agents"):
-        assert f'id="{element_id}"' in r.text
-    assert "whoami" in r.text
-    assert "curl" in r.text                      # machine panel travelled with it
+    assert "AES-256-GCM" in r.text               # the three steps are there
+    assert "tab-agent" not in r.text             # machine tab removed
+    assert "curl" not in r.text                  # agents quickstart removed
 
 
 def test_security_headers_on_every_response(client):
@@ -161,13 +163,8 @@ def test_robots_txt(client):
     assert "Disallow: /api/" in r.text
 
 
-def test_llms_txt_documents_api(client):
-    r = client.get("/llms.txt")
-    assert r.status_code == 200
-    assert "text/plain" in r.headers["content-type"]
-    for fragment in ("POST https://secret.test/api/secrets", "/reveal", "/consume",
-                     "one read"):
-        assert fragment in r.text
+def test_llms_txt_is_gone(client):
+    assert client.get("/llms.txt").status_code == 404
 
 
 def test_privacy_and_legal_pages(client):

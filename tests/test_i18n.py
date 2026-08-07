@@ -45,9 +45,7 @@ def test_privacy_and_legal_translated(client):
     assert "B27584010" in es.text
 
 
-def test_llms_and_api_stay_english(client):
-    r = client.get("/llms.txt", headers={"accept-language": "ca"})
-    assert "one-time secret sharing" in r.text
+def test_api_stays_english(client):
     r404 = client.get("/api/secrets/" + "x" * 22, headers={"accept-language": "ca"})
     assert "not found" in r404.json()["detail"]
 

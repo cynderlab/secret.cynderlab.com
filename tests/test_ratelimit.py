@@ -15,12 +15,14 @@ def test_limiter_sliding_window():
     assert rl.check("1.2.3.4", now=1000.0 + 3601) is None    # window slid
 
 
-def test_create_endpoints_return_429(tmp_path):
+def test_create_endpoint_returns_429(tmp_path):
+    from test_api_create import encrypted_payload
+
     app = create_app(make_settings(tmp_path, rate_limit_per_hour=2))
     with TestClient(app) as client:
-        assert client.post("/api/secrets", json={"secret": "a"}).status_code == 201
-        assert client.post("/api/secrets", json={"secret": "b"}).status_code == 201
-        r = client.post("/api/secrets", json={"secret": "c"})
+        assert client.post("/api/secrets/encrypted", json=encrypted_payload()).status_code == 201
+        assert client.post("/api/secrets/encrypted", json=encrypted_payload()).status_code == 201
+        r = client.post("/api/secrets/encrypted", json=encrypted_payload())
         assert r.status_code == 429
         assert "retry-after" in {k.lower() for k in r.headers}
         # reads are not rate limited

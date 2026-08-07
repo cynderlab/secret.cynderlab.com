@@ -24,10 +24,8 @@
       y respuesta a abusos. Los enlaces de secretos llevan la clave tras el <code>#</code>,
       que los navegadores nunca envían — las claves no pueden aparecer en los logs. Las
       peticiones API llevan las claves en el cuerpo de la petición, que no se registra.</li>
-    <li>Si usas el endpoint <code>/api/secrets</code>, el texto en claro pasa por la memoria
-      del servidor durante el cifrado/descifrado y se descarta inmediatamente. Usa la web o
-      el endpoint <code>/encrypted</code> si prefieres que el servidor nunca vea el texto en
-      claro.</li>
+    <li>Nada más: todos los secretos se cifran y descifran <strong>en tu navegador</strong>,
+      así que el servidor solo manipula blobs cifrados — nunca ve texto en claro ni claves.</li>
   </ul>
 
   <h2>Retención</h2>
