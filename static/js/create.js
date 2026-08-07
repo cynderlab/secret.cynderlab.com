@@ -53,12 +53,14 @@
       for (let attempt = 0; attempt < 3; attempt++) {
         const slug = CynderCrypto.newSlug();
         const enc = await CynderCrypto.encryptSecret(secret, slug, passphrase);
+        const verifier = passphrase ? await CynderCrypto.deriveVerifier(passphrase, slug) : null;
         const res = await fetch("/api/secrets/encrypted", {
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({
             slug, ciphertext: enc.ciphertext, nonce: enc.nonce,
             has_passphrase: Boolean(passphrase),
+            verifier,
             expires_at: expiry.value || null,
           }),
         });

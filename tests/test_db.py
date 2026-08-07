@@ -5,10 +5,11 @@ from app.db import connect, migrate
 
 def test_migrate_applies_once(tmp_path):
     conn = connect(str(tmp_path / "t.db"))
-    assert migrate(conn) == [1]          # first run applies 001
+    assert migrate(conn) == [1, 2]       # first run applies everything
     assert migrate(conn) == []           # second run is a no-op
     cols = {r["name"] for r in conn.execute("PRAGMA table_info(secrets)")}
-    assert cols == {"slug", "ciphertext", "nonce", "has_passphrase", "created_at", "expires_at"}
+    assert cols == {"slug", "ciphertext", "nonce", "has_passphrase", "created_at",
+                    "expires_at", "verifier_hash", "failed_attempts", "locked_until"}
 
 
 def test_connect_pragmas_and_parent_dir(tmp_path):

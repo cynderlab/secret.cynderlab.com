@@ -1,6 +1,9 @@
 /* Mirror of app/crypto.py — scheme cynderlab.secret.v1.
- * Test vector: linkKey=bytes 0..31, slug="AAAAAAAAAAAAAAAAAAAAAA", passphrase="hunter2"
- * => b64u(aesKeyBits) === "aQ9zwdkp5wqhsrCL5-kxi7yy-sKCAfvDrl0DHgKd5KY" (tests/test_crypto.py) */
+ * Test vectors (tests/test_crypto.py):
+ *   linkKey=bytes 0..31, slug="AAAAAAAAAAAAAAAAAAAAAA", passphrase="hunter2"
+ *   => b64u(aesKeyBits) === "aQ9zwdkp5wqhsrCL5-kxi7yy-sKCAfvDrl0DHgKd5KY"
+ *   deriveVerifier("hunter2", "AAAAAAAAAAAAAAAAAAAAAA")
+ *   => "6cG5RzzGKJuDk7J761se5TuxDPtCpXizEfxGyjn4gpY" */
 (function () {
   "use strict";
   const te = new TextEncoder(), td = new TextDecoder();
@@ -33,6 +36,16 @@
       ikm, { name: "AES-GCM", length: 256 }, false, usages);
   }
 
+  // Proof-of-passphrase for the server gate. Domain-separated from the AES key
+  // by the ".verify" salt suffix; the server stores only its sha256.
+  async function deriveVerifier(passphrase, slug) {
+    const pk = await crypto.subtle.importKey("raw", te.encode(passphrase), "PBKDF2", false, ["deriveBits"]);
+    const bits = await crypto.subtle.deriveBits(
+      { name: "PBKDF2", hash: "SHA-256", salt: te.encode(slug + ".verify"), iterations: PBKDF2_ITERATIONS },
+      pk, 256);
+    return b64uEncode(new Uint8Array(bits));
+  }
+
   async function encryptSecret(plaintext, slug, passphrase) {
     const linkKey = randomBytes(32);
     const aesKey = await deriveAesKey(linkKey, slug, passphrase, ["encrypt"]);
@@ -53,5 +66,5 @@
   }
 
   window.CynderCrypto = { b64uEncode, b64uDecode, randomBytes, newSlug,
-                          deriveAesKey, encryptSecret, decryptSecret };
+                          deriveAesKey, deriveVerifier, encryptSecret, decryptSecret };
 })();

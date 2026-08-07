@@ -3,10 +3,13 @@ secrets arrive already encrypted (WebCrypto in the client) and leave still
 encrypted — decryption happens in the recipient's browser."""
 
 import base64
+import hashlib
+import hmac
 import sqlite3
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from . import crypto, store
@@ -28,7 +31,12 @@ class CreateEncrypted(BaseModel):
     ciphertext: str
     nonce: str
     has_passphrase: bool = False
+    verifier: str | None = None
     expires_at: str | None = None
+
+
+class ConsumeRequest(BaseModel):
+    verifier: str | None = None
 
 
 def parse_expiry(raw: str | None, max_ttl_days: int) -> str:
@@ -69,12 +77,21 @@ def create_secret_encrypted(body: CreateEncrypted, request: Request):
     nonce = _b64u_or_422("nonce", body.nonce)
     if len(ciphertext) > settings.max_secret_bytes + 16:  # GCM tag overhead
         raise HTTPException(413, f"ciphertext exceeds {settings.max_secret_bytes} bytes")
+    verifier_hash = None
+    if body.has_passphrase:
+        if not body.verifier:
+            raise HTTPException(422, "has_passphrase requires a verifier")
+        verifier = _b64u_or_422("verifier", body.verifier)
+        if len(verifier) != 32:
+            raise HTTPException(422, "verifier must decode to 32 bytes")
+        verifier_hash = hashlib.sha256(verifier).digest()
     try:
         expires_at = parse_expiry(body.expires_at, settings.max_ttl_days)
     except ValueError as e:
         raise HTTPException(422, str(e))
     try:
-        store.create_secret(conn, body.slug, ciphertext, nonce, body.has_passphrase, expires_at)
+        store.create_secret(conn, body.slug, ciphertext, nonce, body.has_passphrase,
+                            expires_at, verifier_hash=verifier_hash)
     except sqlite3.IntegrityError:
         raise HTTPException(409, "slug already exists, generate a new one")
     return {"slug": body.slug, "expires_at": expires_at}
@@ -90,10 +107,43 @@ def secret_meta(slug: str, request: Request):
 
 
 @router.post("/secrets/{slug}/consume")
-def consume(slug: str, request: Request):
-    row = store.consume_secret(request.app.state.db, slug)
+def consume(slug: str, request: Request, body: ConsumeRequest | None = None):
+    conn = request.app.state.db
+    auth = store.get_auth(conn, slug)
+    if auth is None:
+        raise HTTPException(404, "secret not found: never existed, expired, or already read")
+
+    if auth["locked_until"] is not None and auth["locked_until"] > store.iso(store.utcnow()):
+        locked_for = _seconds_until(auth["locked_until"])
+        return JSONResponse(
+            {"detail": "too many failed attempts — secret temporarily locked",
+             "locked_seconds": locked_for},
+            status_code=429, headers={"Retry-After": str(locked_for)})
+
+    if auth["verifier_hash"] is not None:
+        supplied = None
+        if body and body.verifier:
+            supplied = _b64u_or_422("verifier", body.verifier)
+        if supplied is None or not hmac.compare_digest(
+                hashlib.sha256(supplied).digest(), auth["verifier_hash"]):
+            outcome = store.register_failure(conn, slug)
+            if outcome == "locked":
+                locked_for = store.LOCK_MINUTES * 60
+                return JSONResponse(
+                    {"detail": "too many failed attempts — secret locked for 5 minutes",
+                     "locked_seconds": locked_for},
+                    status_code=429, headers={"Retry-After": str(locked_for)})
+            return JSONResponse({"detail": "wrong passphrase", "attempts_left": outcome},
+                                status_code=403)
+
+    row = store.consume_secret(conn, slug)
     if row is None:
         raise HTTPException(404, "secret not found: never existed, expired, or already read")
     return {"ciphertext": crypto.b64u_encode(row["ciphertext"]),
             "nonce": crypto.b64u_encode(row["nonce"]),
             "has_passphrase": bool(row["has_passphrase"])}
+
+
+def _seconds_until(iso_ts: str) -> int:
+    dt = datetime.strptime(iso_ts, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+    return max(1, int((dt - store.utcnow()).total_seconds()))

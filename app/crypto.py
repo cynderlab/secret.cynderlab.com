@@ -28,6 +28,17 @@ def b64u_decode(s: str) -> bytes:
     return base64.urlsafe_b64decode(s + "=" * (-len(s) % 4))
 
 
+def derive_verifier(passphrase: str, slug: str) -> bytes:
+    """Proof-of-passphrase sent to the server. Domain-separated from the AES key
+    derivation by the '.verify' salt suffix; the server stores only its sha256."""
+    return PBKDF2HMAC(
+        algorithm=hashes.SHA256(),
+        length=32,
+        salt=f"{slug}.verify".encode("utf-8"),
+        iterations=PBKDF2_ITERATIONS,
+    ).derive(passphrase.encode("utf-8"))
+
+
 def derive_key(link_key: bytes, slug: str, passphrase: str | None) -> bytes:
     salt = b""
     if passphrase:

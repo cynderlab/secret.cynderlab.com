@@ -59,3 +59,17 @@ def test_known_vector_locks_scheme_v1():
     slug = "AAAAAAAAAAAAAAAAAAAAAA"
     aes_key = crypto.derive_key(link_key, slug, "hunter2")
     assert crypto.b64u_encode(aes_key) == "aQ9zwdkp5wqhsrCL5-kxi7yy-sKCAfvDrl0DHgKd5KY"
+
+
+def test_verifier_vector_locks_derivation():
+    """Pinned via an independent stdlib PBKDF2 run. Do not change."""
+    v = crypto.derive_verifier("hunter2", "AAAAAAAAAAAAAAAAAAAAAA")
+    assert crypto.b64u_encode(v) == "6cG5RzzGKJuDk7J761se5TuxDPtCpXizEfxGyjn4gpY"
+
+
+def test_verifier_is_domain_separated_from_aes_key():
+    slug = "AAAAAAAAAAAAAAAAAAAAAA"
+    verifier = crypto.derive_verifier("hunter2", slug)
+    aes_key = crypto.derive_key(bytes(range(32)), slug, "hunter2")
+    assert verifier != aes_key
+    assert crypto.derive_verifier("hunter2", crypto.new_slug()) != verifier  # slug-bound

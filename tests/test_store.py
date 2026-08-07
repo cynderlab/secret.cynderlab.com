@@ -59,3 +59,27 @@ def test_purge_expired(conn):
     store.create_secret(conn, "B" * 22, b"b", b"n", False, future())
     assert store.purge_expired(conn) == 1
     assert conn.execute("SELECT slug FROM secrets").fetchone()["slug"] == "B" * 22
+
+
+def test_get_auth_and_register_failure(conn):
+    store.create_secret(conn, SLUG, b"ct", b"n", True, future(), verifier_hash=b"h" * 32)
+    auth = store.get_auth(conn, SLUG)
+    assert auth["verifier_hash"] == b"h" * 32
+    assert auth["failed_attempts"] == 0
+    assert auth["locked_until"] is None
+
+    for expected_left in (4, 3, 2, 1):
+        assert store.register_failure(conn, SLUG) == expected_left
+    assert store.register_failure(conn, SLUG) == "locked"     # 5th failure locks
+
+    auth = store.get_auth(conn, SLUG)
+    assert auth["failed_attempts"] == 0                       # counter reset on lock
+    assert auth["locked_until"] > store.iso(store.utcnow())   # ~5 min ahead
+    # secret was NOT burned by failures
+    assert store.get_meta(conn, SLUG) is not None
+
+
+def test_get_auth_none_for_missing_or_expired(conn):
+    assert store.get_auth(conn, SLUG) is None
+    store.create_secret(conn, SLUG, b"ct", b"n", False, past())
+    assert store.get_auth(conn, SLUG) is None

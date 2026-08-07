@@ -21,6 +21,11 @@ const vector = C.b64uEncode(bits);
 console.log("vector:", vector);
 if (vector !== "aQ9zwdkp5wqhsrCL5-kxi7yy-sKCAfvDrl0DHgKd5KY") throw new Error("KDF vector MISMATCH");
 
+// 1b) Passphrase-verifier vector (server gate) — pinned in tests/test_crypto.py
+const ver = await C.deriveVerifier("hunter2", "AAAAAAAAAAAAAAAAAAAAAA");
+console.log("verifier:", ver);
+if (ver !== "6cG5RzzGKJuDk7J761se5TuxDPtCpXizEfxGyjn4gpY") throw new Error("verifier vector MISMATCH");
+
 // 2) JS-encrypt -> print for Python decrypt
 const slug = C.newSlug();
 const enc = await C.encryptSecret("cross-language payload ✔", slug, "correct horse");
