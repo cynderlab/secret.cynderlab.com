@@ -15,7 +15,10 @@ AES-256-GCM blob it cannot decrypt.
   URL fragment (`#`), which browsers never send to any server.
 - **Optional expiry** — calendar picker, 30-day maximum; expired secrets are never served and
   are swept hourly.
-- **Optional passphrase** — a second factor mixed into the key derivation, never stored.
+- **Optional passphrase, server-gated** — a second factor mixed into the key derivation. The
+  server verifies a derived proof (never the passphrase itself) **before** releasing or
+  burning anything: a typo never destroys a secret, and 5 failed attempts lock that secret
+  for 5 minutes. Attempts are counted per secret — no IP or User-Agent tracking.
 - **Abuse control** — 20 secret creations/hour/IP (in-memory sliding window), 256 KB max.
 - **Nothing to leak** — no accounts, no cookies, no analytics, no third-party requests, no IPs
   in the database. Strict CSP, `no-store` on sensitive paths, branded error pages.
@@ -36,6 +39,10 @@ aes_key = HKDF-SHA256(
     salt = passphrase ? PBKDF2-HMAC-SHA256(passphrase, salt=utf8(slug), 310000 iters) : empty,
     info = "cynderlab.secret.v1")
 AES-256-GCM · 12-byte nonce · AAD = utf8(slug)
+
+# passphrase gate (proof sent to the server instead of the passphrase):
+verifier = PBKDF2-HMAC-SHA256(passphrase, salt=utf8(slug + ".verify"), 310000 iters)
+server stores sha256(verifier) only · constant-time compare · 5 fails = 5-minute lock
 ```
 
 Implemented twice — `app/crypto.py` (server) and `static/js/crypto.js` (browser) — and locked
@@ -49,9 +56,9 @@ in the browser:
 
 | Endpoint | Method | Purpose |
 |---|---|---|
-| `/api/secrets/encrypted` | POST | Store a blob the browser already encrypted |
+| `/api/secrets/encrypted` | POST | Store a blob the browser already encrypted (+ verifier if passphrase-protected) |
 | `/api/secrets/{slug}` | GET | Metadata check — does **not** burn |
-| `/api/secrets/{slug}/consume` | POST | Burn and return the ciphertext (browser decrypts) |
+| `/api/secrets/{slug}/consume` | POST | Burn and return the ciphertext (browser decrypts). Passphrase-protected secrets require the verifier: wrong proof → 403 with `attempts_left` (no burn); 5th failure → 429, locked 5 minutes |
 
 There is deliberately no endpoint that accepts or returns plaintext.
 
@@ -66,7 +73,7 @@ migrations/     numbered .sql files, applied by `python -m app.migrate` (ExecSta
 templates/      Jinja2 pages (home, how-it-works, reveal, legal, errors)
 static/         css, fonts (self-hosted), crypto.js/create.js/reveal.js
 deploy/         systemd user units + cleanup timer + nginx origin config
-tests/          48 tests: crypto vectors, burn semantics, api, rate limit, headers, pages
+tests/          70+ tests: crypto vectors, burn semantics, passphrase gate, api, i18n, pages
 ```
 
 ## Configuration
@@ -89,8 +96,9 @@ uv run pytest
 uv run uvicorn app.main:app --port 8001 --reload
 ```
 
-`node verify_crypto.mjs` cross-checks that the browser crypto matches the Python side.
-`bash e2e_check.sh` runs a live end-to-end smoke test against a local uvicorn.
+`node verify_crypto.mjs` cross-checks that the browser crypto (AES key + passphrase verifier)
+matches the Python side. `bash e2e_check.sh` spins up a local instance and smoke-tests pages,
+headers and the full secret flow, including the passphrase gate (`gate_e2e.py`).
 
 ## Deployment (systemd --user)
 

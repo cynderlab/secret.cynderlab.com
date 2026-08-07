@@ -9,8 +9,11 @@
   <h2>What we store</h2>
   <ul>
     <li><strong>The encrypted secret</strong> (an AES-256-GCM blob), its creation and expiry
-      timestamps, and whether a passphrase was set. We never hold the decryption key: it exists
-      only in the link, so we cannot read your secrets — by construction, not by promise.</li>
+      timestamps, and whether a passphrase was set. For passphrase-protected secrets we also
+      store a salted, heavily-stretched hash used only to count wrong attempts — it cannot
+      reconstruct the passphrase or decrypt anything. We never hold the decryption key: it
+      exists only in the link, so we cannot read your secrets — by construction, not by
+      promise.</li>
     <li><strong>Nothing else in the database.</strong> No accounts, no emails, no IP addresses,
       no cookies, no analytics, no third-party requests.</li>
   </ul>

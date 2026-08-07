@@ -9,9 +9,11 @@
   <h2>Qué guardamos</h2>
   <ul>
     <li><strong>El secreto cifrado</strong> (un blob AES-256-GCM), las fechas de creación y
-      caducidad, y si tiene frase de paso. Nunca tenemos la clave de descifrado: solo existe
-      en el enlace, así que no podemos leer tus secretos — por construcción, no por
-      promesa.</li>
+      caducidad, y si tiene frase de paso. Para los secretos con frase de paso también
+      guardamos un hash salado y muy estirado que sirve solo para contar intentos erróneos —
+      no puede reconstruir la frase de paso ni descifrar nada. Nunca tenemos la clave de
+      descifrado: solo existe en el enlace, así que no podemos leer tus secretos — por
+      construcción, no por promesa.</li>
     <li><strong>Nada más en la base de datos.</strong> Ni cuentas, ni emails, ni direcciones
       IP, ni cookies, ni analíticas, ni peticiones a terceros.</li>
   </ul>

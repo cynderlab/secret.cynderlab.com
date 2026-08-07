@@ -9,8 +9,10 @@
   <h2>Què guardem</h2>
   <ul>
     <li><strong>El secret xifrat</strong> (un blob AES-256-GCM), les dates de creació i
-      caducitat, i si té frase de pas. Mai tenim la clau de desxifrat: només existeix al link,
-      així que no podem llegir els teus secrets — per construcció, no per promesa.</li>
+      caducitat, i si té frase de pas. Per als secrets amb frase de pas també guardem un hash
+      salat i molt estirat que serveix només per comptar intents erronis — no pot reconstruir
+      la frase de pas ni desxifrar res. Mai tenim la clau de desxifrat: només existeix al
+      link, així que no podem llegir els teus secrets — per construcció, no per promesa.</li>
     <li><strong>Res més a la base de dades.</strong> Ni comptes, ni emails, ni adreces IP,
       ni cookies, ni analítiques, ni peticions a tercers.</li>
   </ul>
