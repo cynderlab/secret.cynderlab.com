@@ -8,8 +8,16 @@ from pydantic import BaseModel
 
 from . import crypto, store
 from .config import Settings
+from .ratelimit import client_ip
 
 router = APIRouter(prefix="/api")
+
+
+def enforce_create_limit(request: Request) -> None:
+    retry_after = request.app.state.limiter.check(client_ip(request))
+    if retry_after is not None:
+        raise HTTPException(429, "rate limit exceeded: try again later",
+                            headers={"Retry-After": str(retry_after)})
 
 
 class CreateSecret(BaseModel):
@@ -55,6 +63,7 @@ def _b64u_or_422(field: str, value: str) -> bytes:
 
 @router.post("/secrets", status_code=201)
 def create_secret(body: CreateSecret, request: Request):
+    enforce_create_limit(request)
     settings: Settings = request.app.state.settings
     conn: sqlite3.Connection = request.app.state.db
     plaintext = body.secret.encode("utf-8")
@@ -78,6 +87,7 @@ def create_secret(body: CreateSecret, request: Request):
 
 @router.post("/secrets/encrypted", status_code=201)
 def create_secret_encrypted(body: CreateEncrypted, request: Request):
+    enforce_create_limit(request)
     settings: Settings = request.app.state.settings
     conn: sqlite3.Connection = request.app.state.db
     if not crypto.SLUG_RE.fullmatch(body.slug):
