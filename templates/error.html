@@ -34,5 +34,5 @@
 {% endif %}
 {% endblock %}
 {% block scripts %}
-{% if status == 404 %}<script src="/static/js/e404.js"></script>{% endif %}
+{% if status == 404 %}<script src="{{ static_url('js/e404.js') }}"></script>{% endif %}
 {% endblock %}

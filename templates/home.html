@@ -50,7 +50,7 @@
 and for machines.</p>
 {% endblock %}
 {% block scripts %}
-<script src="/static/js/vendor/qrcode.js"></script>
-<script src="/static/js/crypto.js"></script>
-<script src="/static/js/create.js"></script>
+<script src="{{ static_url('js/vendor/qrcode.js') }}"></script>
+<script src="{{ static_url('js/crypto.js') }}"></script>
+<script src="{{ static_url('js/create.js') }}"></script>
 {% endblock %}

@@ -30,10 +30,25 @@ def test_home_has_qr_slot_for_generated_link(client):
     assert "/static/js/vendor/qrcode.js" in r.text
 
 
+def test_static_urls_are_content_versioned(client):
+    r = client.get("/")
+    assert "/static/css/app.css?v=" in r.text
+    assert "/static/js/crypto.js?v=" in r.text
+    assert "/static/img/logo.png?v=" in r.text
+
+
+def test_static_responses_are_long_cached_and_immutable(client):
+    r = client.get("/static/css/app.css")
+    assert "immutable" in r.headers["cache-control"]
+    assert "max-age=31536000" in r.headers["cache-control"]
+    # html pages must NOT get the long cache
+    assert "immutable" not in client.get("/").headers.get("cache-control", "")
+
+
 def test_social_card_metadata(client):
     r = client.get("/")
     assert 'property="og:title"' in r.text
-    assert 'content="https://secret.test/static/img/og.png"' in r.text
+    assert 'content="https://secret.test/static/img/og.png?v=' in r.text
     assert 'content="https://secret.test/"' in r.text          # og:url
     assert 'name="twitter:card" content="summary_large_image"' in r.text
 

@@ -1,3 +1,5 @@
+import hashlib
+from functools import lru_cache
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, Request
@@ -10,6 +12,22 @@ from .store import get_meta
 BASE_DIR = Path(__file__).resolve().parent.parent
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 router = APIRouter()
+
+
+@lru_cache(maxsize=None)
+def _asset_hash(rel_path: str) -> str:
+    return hashlib.sha256((BASE_DIR / "static" / rel_path).read_bytes()).hexdigest()[:8]
+
+
+def static_url(rel_path: str) -> str:
+    """Content-hashed static URL: cache busts exactly when the file changes."""
+    try:
+        return f"/static/{rel_path}?v={_asset_hash(rel_path)}"
+    except OSError:
+        return f"/static/{rel_path}"
+
+
+templates.env.globals["static_url"] = static_url
 
 
 @router.get("/", response_class=HTMLResponse)

@@ -42,6 +42,9 @@ def _security_headers_middleware(application: FastAPI) -> None:
         response.headers.update(SECURITY_HEADERS)
         if request.url.path.startswith(("/s/", "/api/")):
             response.headers["Cache-Control"] = "no-store"
+        elif request.url.path.startswith("/static/"):
+            # URLs carry a content hash (?v=), so caches may hold them forever
+            response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
         return response
 
 
