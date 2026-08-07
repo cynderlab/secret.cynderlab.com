@@ -2,6 +2,7 @@ import base64
 import sqlite3
 from datetime import datetime, timedelta, timezone
 
+from cryptography.exceptions import InvalidTag
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 
@@ -94,3 +95,48 @@ def create_secret_encrypted(body: CreateEncrypted, request: Request):
     except sqlite3.IntegrityError:
         raise HTTPException(409, "slug already exists, generate a new one")
     return {"slug": body.slug, "expires_at": expires_at}
+
+
+class RevealRequest(BaseModel):
+    key: str
+    passphrase: str | None = None
+
+
+@router.get("/secrets/{slug}")
+def secret_meta(slug: str, request: Request):
+    row = store.get_meta(request.app.state.db, slug)
+    if row is None:
+        raise HTTPException(404, "secret not found: never existed, expired, or already read")
+    return {"slug": slug, "has_passphrase": bool(row["has_passphrase"]),
+            "expires_at": row["expires_at"]}
+
+
+@router.post("/secrets/{slug}/consume")
+def consume(slug: str, request: Request):
+    row = store.consume_secret(request.app.state.db, slug)
+    if row is None:
+        raise HTTPException(404, "secret not found: never existed, expired, or already read")
+    return {"ciphertext": crypto.b64u_encode(row["ciphertext"]),
+            "nonce": crypto.b64u_encode(row["nonce"]),
+            "has_passphrase": bool(row["has_passphrase"])}
+
+
+@router.post("/secrets/{slug}/reveal")
+def reveal(slug: str, body: RevealRequest, request: Request):
+    try:
+        link_key = crypto.b64u_decode(body.key)
+    except (ValueError, base64.binascii.Error):
+        raise HTTPException(422, "key is not valid base64url")
+    if len(link_key) != 32:
+        raise HTTPException(422, "key must decode to 32 bytes")
+    row = store.consume_secret(request.app.state.db, slug)
+    if row is None:
+        raise HTTPException(404, "secret not found: never existed, expired, or already read")
+    aes_key = crypto.derive_key(link_key, slug, body.passphrase or None)
+    try:
+        plaintext = crypto.decrypt(row["nonce"], row["ciphertext"], aes_key, slug)
+    except InvalidTag:
+        raise HTTPException(
+            410,
+            "wrong key or passphrase — the secret was consumed by this attempt and is now burned")
+    return {"secret": plaintext.decode("utf-8")}
