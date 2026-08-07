@@ -47,11 +47,20 @@ def test_reveal_page_unknown_or_expired_slug_is_branded_404(client):
     assert 'id="reveal-btn"' not in r.text
 
 
-def test_home_dual_explanation_toggle(client):
+def test_home_is_clean_of_explanations(client):
     r = client.get("/")
+    assert 'id="tab-human"' not in r.text        # explanation moved to its own page
+    assert 'id="create-form"' in r.text          # the form stays
+    assert '/how-it-works' in r.text             # header links to the new page
+
+
+def test_how_it_works_page_with_dual_toggle(client):
+    r = client.get("/how-it-works")
+    assert r.status_code == 200
     for element_id in ("tab-human", "tab-agent", "how-it-works", "agents"):
         assert f'id="{element_id}"' in r.text
     assert "whoami" in r.text
+    assert "curl" in r.text                      # machine panel travelled with it
 
 
 def test_security_headers_on_every_response(client):

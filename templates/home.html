@@ -39,48 +39,10 @@
   </div>
 </section>
 
-<section class="explain">
-  <h2>How it works</h2>
-  <div class="mode-toggle" role="tablist" aria-label="Pick your reader mode">
-    <span class="mono muted">$ whoami →</span>
-    <button type="button" id="tab-human" class="tab is-active" role="tab"
-            aria-selected="true" aria-controls="how-it-works">human</button>
-    <button type="button" id="tab-agent" class="tab" role="tab"
-            aria-selected="false" aria-controls="agents">machine</button>
-  </div>
-
-  <div id="how-it-works" role="tabpanel">
-    <ol>
-      <li><strong>Encrypt.</strong> Your browser generates a random 256-bit key and encrypts the
-        secret with AES-256-GCM. Only the encrypted blob is uploaded.</li>
-      <li><strong>Share.</strong> The key rides in the link after the <code>#</code> — browsers
-        never send that part to any server. Send the link to one person.</li>
-      <li><strong>Burn.</strong> The first open destroys the secret on our server. Expired secrets
-        burn too, read or not. Nothing to hack, nothing to subpoena.</li>
-    </ol>
-    <p>Add a passphrase and the link alone is not enough — tell the passphrase to the recipient
-    through a different channel (a call, in person). Wrong passphrase on the API burns the secret:
-    that is a feature, not a bug.</p>
-  </div>
-
-  <div id="agents" role="tabpanel" hidden>
-    <p>Machine-readable docs live at <a href="/llms.txt"><code>/llms.txt</code></a>. Quick start:</p>
-    <pre class="terminal"><code># create (server encrypts in memory, key returned once in the link)
-curl -s https://secret.cynderlab.com/api/secrets \
-  -H 'content-type: application/json' \
-  -d '{"secret": "the payload", "expires_at": "2026-09-01"}'
-
-# reveal (burns the secret; key = the part after '#' in the link)
-curl -s https://secret.cynderlab.com/api/secrets/&lt;slug&gt;/reveal \
-  -H 'content-type: application/json' \
-  -d '{"key": "&lt;key&gt;"}'</code></pre>
-    <p class="muted">One read only. A reveal with a wrong key still burns the secret — retry is
-    impossible by design.</p>
-  </div>
-</section>
+<p class="explain-link muted">New here? <a href="/how-it-works">How it works</a> — for humans
+and for machines.</p>
 {% endblock %}
 {% block scripts %}
 <script src="/static/js/crypto.js"></script>
 <script src="/static/js/create.js"></script>
-<script src="/static/js/tabs.js"></script>
 {% endblock %}

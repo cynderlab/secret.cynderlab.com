@@ -21,6 +21,11 @@ def home(request: Request):
     })
 
 
+@router.get("/how-it-works", response_class=HTMLResponse)
+def how_it_works(request: Request):
+    return templates.TemplateResponse(request, "how-it-works.html", {})
+
+
 @router.get("/s/{slug}", response_class=HTMLResponse)
 def reveal_page(slug: str, request: Request):
     if not SLUG_RE.fullmatch(slug):
