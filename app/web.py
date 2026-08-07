@@ -5,6 +5,7 @@ from fastapi.responses import HTMLResponse, PlainTextResponse
 from fastapi.templating import Jinja2Templates
 
 from .crypto import SLUG_RE
+from .store import get_meta
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
@@ -23,6 +24,9 @@ def home(request: Request):
 @router.get("/s/{slug}", response_class=HTMLResponse)
 def reveal_page(slug: str, request: Request):
     if not SLUG_RE.fullmatch(slug):
+        raise HTTPException(404)
+    if get_meta(request.app.state.db, slug) is None:
+        # burned, expired or never existed — same branded 404 for all of them
         raise HTTPException(404)
     return templates.TemplateResponse(request, "secret.html", {"slug": slug})
 

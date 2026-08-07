@@ -23,10 +23,10 @@ def test_static_assets_served(client):
 
 
 def test_reveal_page_renders_shell(client):
-    slug = "A" * 22
-    r = client.get(f"/s/{slug}")
+    body = client.post("/api/secrets", json={"secret": "x"}).json()
+    r = client.get(f"/s/{body['slug']}")
     assert r.status_code == 200
-    assert f'data-slug="{slug}"' in r.text
+    assert f'data-slug="{body["slug"]}"' in r.text
     assert 'id="reveal-btn"' in r.text
 
 
@@ -38,6 +38,20 @@ def test_reveal_page_never_contains_secret_data(client):
 
 def test_reveal_page_invalid_slug_404(client):
     assert client.get("/s/short").status_code == 404
+
+
+def test_reveal_page_unknown_or_expired_slug_is_branded_404(client):
+    r = client.get("/s/" + "A" * 22)             # well-formed slug, no such secret
+    assert r.status_code == 404
+    assert "CYNDERLAB DIGITAL SL" in r.text      # branded 404 page, not the reveal shell
+    assert 'id="reveal-btn"' not in r.text
+
+
+def test_home_dual_explanation_toggle(client):
+    r = client.get("/")
+    for element_id in ("tab-human", "tab-agent", "how-it-works", "agents"):
+        assert f'id="{element_id}"' in r.text
+    assert "whoami" in r.text
 
 
 def test_security_headers_on_every_response(client):

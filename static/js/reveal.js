@@ -8,7 +8,11 @@
   let needsPassphrase = false;
   let cached = null;    // {ciphertext, nonce} kept so a wrong passphrase can be retried locally
 
-  const states = ["state-loading", "state-ready", "state-secret", "state-gone", "state-nokey"];
+  // Anything broken — missing key, burned/expired secret, undecryptable link —
+  // lands on the branded 404 page.
+  const notFound = () => location.replace("/404");
+
+  const states = ["state-loading", "state-ready", "state-secret"];
   function show(state) { for (const s of states) $(s).hidden = s !== state; }
   function fail(message) {
     const el = $("reveal-error");
@@ -18,9 +22,9 @@
   }
 
   async function init() {
-    if (!key) return show("state-nokey");
+    if (!key) return notFound();
     const res = await fetch(`/api/secrets/${slug}`);
-    if (!res.ok) return show("state-gone");
+    if (!res.ok) return notFound();
     const meta = await res.json();
     needsPassphrase = meta.has_passphrase;
     $("passphrase-box").hidden = !needsPassphrase;
@@ -34,7 +38,7 @@
     if (needsPassphrase && !passphrase) return fail("Enter the passphrase first.");
     if (!cached) {
       const res = await fetch(`/api/secrets/${slug}/consume`, { method: "POST" });
-      if (!res.ok) return show("state-gone");
+      if (!res.ok) return notFound();
       cached = await res.json();
     }
     try {
@@ -45,7 +49,7 @@
       if (needsPassphrase) {
         fail("Wrong passphrase. The secret is already burned on the server, but you can retry here — do not close this tab.");
       } else {
-        fail("Decryption failed: the key in this link does not match. The secret is burned.");
+        notFound();
       }
     }
   }

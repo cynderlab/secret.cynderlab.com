@@ -14,6 +14,10 @@
   };
   expiry.min = plusDays(1);
   expiry.max = plusDays(30);
+  // Open the calendar on click/focus so picking a date is one gesture.
+  expiry.addEventListener("click", () => {
+    try { expiry.showPicker(); } catch (e) { /* older browsers: native behaviour */ }
+  });
 
   function fail(message) {
     const el = $("create-error");
