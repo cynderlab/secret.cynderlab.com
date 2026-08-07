@@ -74,6 +74,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     application.state.db = connect(settings.db_path)
     migrate(application.state.db)
     application.state.limiter = RateLimiter(settings.rate_limit_per_hour)
+    web.templates.env.globals["base_url"] = settings.base_url
     application.include_router(api.router)
     application.include_router(web.router)
     application.mount("/static", StaticFiles(directory=str(web.BASE_DIR / "static")),

@@ -20,6 +20,22 @@ def test_static_assets_served(client):
     assert client.get("/static/js/crypto.js").status_code == 200
     assert client.get("/static/js/create.js").status_code == 200
     assert client.get("/static/img/logo.png").status_code == 200
+    assert client.get("/static/img/og.png").status_code == 200
+
+
+def test_social_card_metadata(client):
+    r = client.get("/")
+    assert 'property="og:title"' in r.text
+    assert 'content="https://secret.test/static/img/og.png"' in r.text
+    assert 'content="https://secret.test/"' in r.text          # og:url
+    assert 'name="twitter:card" content="summary_large_image"' in r.text
+
+
+def test_secret_page_social_card_override(client):
+    body = client.post("/api/secrets", json={"secret": "x"}).json()
+    r = client.get(f"/s/{body['slug']}")
+    assert "Someone sent you a secret" in r.text                # og:title for shared links
+    assert "read exactly once" in r.text
 
 
 def test_reveal_page_renders_shell(client):

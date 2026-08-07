@@ -1,5 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="6" fill="#0C1420"/>
-  <text x="16" y="22" font-family="monospace" font-size="15" font-weight="bold"
+  <rect width="32" height="32" rx="7" fill="#121D2E" stroke="#22334D" stroke-width="1"/>
+  <text x="15" y="23" font-family="monospace" font-size="15" font-weight="bold"
         fill="#2CB9DD" text-anchor="middle">s#</text>
+  <circle cx="25" cy="7" r="3" fill="#FF8A3D"/>
 </svg>
