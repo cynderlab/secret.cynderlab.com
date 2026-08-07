@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, PlainTextResponse
 from fastapi.templating import Jinja2Templates
 
 from .crypto import SLUG_RE
@@ -25,3 +25,8 @@ def reveal_page(slug: str, request: Request):
     if not SLUG_RE.fullmatch(slug):
         raise HTTPException(404)
     return templates.TemplateResponse(request, "secret.html", {"slug": slug})
+
+
+@router.get("/robots.txt", response_class=PlainTextResponse)
+def robots():
+    return "User-agent: *\nDisallow: /s/\nDisallow: /api/\nAllow: /\n"

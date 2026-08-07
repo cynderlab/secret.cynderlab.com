@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}{{ status }} — Cynderlab Secrets{% endblock %}
+{% block content %}
+<div class="terminal reveal-box">
+  <p class="eyebrow">http {{ status }}</p>
+  <h1 class="mono">{{ heading }}</h1>
+  <p class="lede">{{ message }}</p>
+  <p class="row"><a class="ghost-btn" href="/">Back to safety</a></p>
+</div>
+{% endblock %}

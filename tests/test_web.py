@@ -38,3 +38,39 @@ def test_reveal_page_never_contains_secret_data(client):
 
 def test_reveal_page_invalid_slug_404(client):
     assert client.get("/s/short").status_code == 404
+
+
+def test_security_headers_on_every_response(client):
+    r = client.get("/")
+    csp = r.headers["content-security-policy"]
+    assert "default-src 'self'" in csp
+    assert "frame-ancestors 'none'" in csp
+    assert r.headers["referrer-policy"] == "no-referrer"
+    assert r.headers["x-content-type-options"] == "nosniff"
+    assert r.headers["x-frame-options"] == "DENY"
+
+
+def test_no_store_on_sensitive_paths(client):
+    assert client.get("/s/" + "A" * 22).headers["cache-control"] == "no-store"
+    assert client.get("/api/secrets/" + "A" * 22).headers["cache-control"] == "no-store"
+    assert "no-store" not in client.get("/").headers.get("cache-control", "")
+
+
+def test_html_404_is_branded(client):
+    r = client.get("/does-not-exist")
+    assert r.status_code == 404
+    assert "CYNDERLAB DIGITAL SL" in r.text       # base template rendered
+    assert "text/html" in r.headers["content-type"]
+
+
+def test_api_404_stays_json(client):
+    r = client.get("/api/secrets/" + "A" * 22)
+    assert "application/json" in r.headers["content-type"]
+    assert "detail" in r.json()
+
+
+def test_robots_txt(client):
+    r = client.get("/robots.txt")
+    assert r.status_code == 200
+    assert "Disallow: /s/" in r.text
+    assert "Disallow: /api/" in r.text
