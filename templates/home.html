@@ -1,53 +1,57 @@
 {% extends "base.html" %}
 {% block content %}
 <section class="hero">
-  <p class="eyebrow">one link · one read · then ash</p>
-  <h1>Share secrets that<br><span class="accent">self-destruct.</span></h1>
-  <p class="lede">Paste a password, an API key, a config. Get a link. The secret is encrypted
-  <strong>in your browser</strong> — the key stays in the link and never touches our server.
-  First read burns it. So could we peek? No. Literally, cryptographically, no.</p>
+  <p class="eyebrow">{{ t('hero_eyebrow') }}</p>
+  <h1>{{ t('hero_l1') }}<br><span class="accent">{{ t('hero_l2') }}</span></h1>
+  <p class="lede">{{ t('hero_lede') | safe }}</p>
 </section>
 
 <section class="creator">
-  <form id="create-form" autocomplete="off">
-    <label class="mono" for="secret-input">$ cat your_secret.txt</label>
+  <form id="create-form" autocomplete="off"
+        data-err-oversize="{{ t('err_oversize') }}"
+        data-err-rate="{{ t('err_rate') }}"
+        data-err-store="{{ t('err_store', status='{status}') }}"
+        data-err-alloc="{{ t('err_alloc') }}"
+        data-err-crypto="{{ t('err_crypto') }}"
+        data-copied="{{ t('copied') }}"
+        data-copy-label="{{ t('btn_copy') }}"
+        data-expires-tpl="{{ t('expires_tpl', date='{date}') }}">
+    <label class="mono" for="secret-input">{{ t('form_label') }}</label>
     <textarea id="secret-input" rows="8" required
-      placeholder="Paste the secret here. Up to {{ max_kb }} KB of text."></textarea>
+      placeholder="{{ t('ph_secret', kb=max_kb) }}"></textarea>
     <div class="options">
       <div class="option">
-        <label for="expiry-input">Expires on <span class="muted">(optional, max {{ max_ttl_days }} days)</span></label>
+        <label for="expiry-input">{{ t('label_expiry') }} <span class="muted">{{ t('note_expiry', days=max_ttl_days) }}</span></label>
         <input type="date" id="expiry-input">
       </div>
       <div class="option">
-        <label for="passphrase-input">Passphrase <span class="muted">(optional second factor)</span></label>
-        <input type="password" id="passphrase-input" placeholder="share it via another channel">
+        <label for="passphrase-input">{{ t('label_pass') }} <span class="muted">{{ t('note_pass') }}</span></label>
+        <input type="password" id="passphrase-input" placeholder="{{ t('ph_pass') }}">
       </div>
     </div>
-    <button type="submit" id="create-btn">Encrypt &amp; create link</button>
+    <button type="submit" id="create-btn">{{ t('btn_create') | safe }}</button>
     <p id="create-error" class="error" hidden></p>
   </form>
 
   <div id="result-panel" class="terminal" hidden>
-    <p class="mono muted"># secret stored — this link is the only copy of the key</p>
+    <p class="mono muted">{{ t('result_stored') }}</p>
     <p class="mono link-line"><output id="result-link"></output></p>
-    <p class="mono ember">READS LEFT: 1 ▓▓▓▓▓▓▓▓▓▓ — burns on first open</p>
+    <p class="mono ember">{{ t('result_reads') }}</p>
     <p class="mono muted" id="result-expiry"></p>
     <div class="qr-row">
       <div class="qr-tile">
-        <img id="result-qr" alt="QR code containing the secret link" width="148" height="148">
+        <img id="result-qr" alt="QR" width="148" height="148">
       </div>
-      <p class="mono muted qr-caption">scan to open on another device —<br>the QR is drawn
-      right here in your browser,<br>the key inside it never left this page</p>
+      <p class="mono muted qr-caption">{{ t('qr_caption') | safe }}</p>
     </div>
     <div class="row">
-      <button type="button" id="copy-btn">Copy link</button>
-      <a href="/" class="ghost-btn">New secret</a>
+      <button type="button" id="copy-btn">{{ t('btn_copy') }}</button>
+      <a href="/" class="ghost-btn">{{ t('btn_new') }}</a>
     </div>
   </div>
 </section>
 
-<p class="explain-link muted">New here? <a href="/how-it-works">How it works</a> — for humans
-and for machines.</p>
+<p class="explain-link muted">{{ t('explain_link') | safe }}</p>
 {% endblock %}
 {% block scripts %}
 <script src="{{ static_url('js/vendor/qrcode.js') }}"></script>

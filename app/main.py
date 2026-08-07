@@ -20,19 +20,18 @@ SECURITY_HEADERS = {
     "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
 }
 
-ERROR_COPY = {
-    404: ("Nothing at this address.",
-          "The page you asked for does not exist. If you followed a secret link, the secret"
-          " may simply be gone — burned or expired."),
-    405: ("Wrong method.",
-          "That endpoint exists, but not for this HTTP method. See /llms.txt for the API"
-          " contract."),
-    410: ("Burned.", "This resource was consumed and no longer exists. That is by design."),
-    429: ("Slow down.",
-          "You hit the rate limit for creating secrets. Wait a bit and try again."),
-    500: ("Something broke on our side.",
-          "The error has been logged without any of your data in it. Try again in a minute."),
-}
+from .i18n import make_t, negotiate
+
+TRANSLATED_ERRORS = (405, 410, 429, 500)
+
+
+def _error_context(request, status: int, detail) -> dict:
+    t = make_t(negotiate(request.headers.get("accept-language")))
+    if status in TRANSLATED_ERRORS:
+        return {"status": status, "heading": t(f"err_{status}_h"),
+                "message": t(f"err_{status}_m")}
+    # 404 renders its own animated branch; heading/message are the generic fallback
+    return {"status": status, "heading": t("err_generic_h"), "message": str(detail)}
 
 
 def _security_headers_middleware(application: FastAPI) -> None:
@@ -45,6 +44,8 @@ def _security_headers_middleware(application: FastAPI) -> None:
         elif request.url.path.startswith("/static/"):
             # URLs carry a content hash (?v=), so caches may hold them forever
             response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+        if response.headers.get("content-type", "").startswith("text/html"):
+            response.headers["Vary"] = "Accept-Language"
         return response
 
 
@@ -54,20 +55,17 @@ def _error_handlers(application: FastAPI) -> None:
         if request.url.path.startswith("/api/"):
             return JSONResponse({"detail": exc.detail}, status_code=exc.status_code,
                                 headers=getattr(exc, "headers", None))
-        heading, message = ERROR_COPY.get(exc.status_code, ("Unexpected error.", str(exc.detail)))
         return web.templates.TemplateResponse(
             request, "error.html",
-            {"status": exc.status_code, "heading": heading, "message": message},
+            _error_context(request, exc.status_code, exc.detail),
             status_code=exc.status_code)
 
     @application.exception_handler(Exception)
     async def server_error(request, exc):
         if request.url.path.startswith("/api/"):
             return JSONResponse({"detail": "internal server error"}, status_code=500)
-        heading, message = ERROR_COPY[500]
         return web.templates.TemplateResponse(
-            request, "error.html",
-            {"status": 500, "heading": heading, "message": message}, status_code=500)
+            request, "error.html", _error_context(request, 500, None), status_code=500)
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:

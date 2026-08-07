@@ -7,21 +7,21 @@
     <span></span><span></span><span></span><span></span>
     <span></span><span></span><span></span><span></span>
   </div>
-  <p class="eyebrow">signal lost</p>
+  <p class="eyebrow">{{ t('e404_eyebrow') }}</p>
   <h1 class="glitch mono" data-text="404">404</h1>
   <div class="terminal e404-terminal" id="e404-terminal">
     <p class="mono cmd">$ ping this-page</p>
     <p class="mono out">ping: this-page: Name or service not known</p>
     <p class="mono cmd">$ sudo find / -name "this-page" 2&gt;/dev/null</p>
-    <p class="mono out">(nothing. not even in /tmp)</p>
+    <p class="mono out">{{ t('e404_out_find') }}</p>
     <p class="mono cmd">$ forensics --deep --recover ./this-page</p>
-    <p class="mono out ember">[!] 0 artifacts recovered — target burned, expired, or never existed</p>
+    <p class="mono out ember">{{ t('e404_out_forensics') }}</p>
     <p class="mono cmd">$ echo "$CONCLUSION"</p>
-    <p class="mono out">around here, things that disappear stay disappeared. it's a feature.</p>
+    <p class="mono out">{{ t('e404_out_conclusion') }}</p>
   </div>
   <p class="row">
-    <a class="ghost-btn mono" href="/" title="Back home">cd ~</a>
-    <a class="ghost-btn mono" href="/how-it-works" title="How it works">man secrets</a>
+    <a class="ghost-btn mono" href="/" title="{{ t('back_safety') }}">cd ~</a>
+    <a class="ghost-btn mono" href="/how-it-works" title="{{ t('nav_how') }}">man secrets</a>
   </p>
 </div>
 {% else %}
@@ -29,7 +29,7 @@
   <p class="eyebrow">http {{ status }}</p>
   <h1 class="mono">{{ heading }}</h1>
   <p class="lede">{{ message }}</p>
-  <p class="row"><a class="ghost-btn" href="/">Back to safety</a></p>
+  <p class="row"><a class="ghost-btn" href="/">{{ t('back_safety') }}</a></p>
 </div>
 {% endif %}
 {% endblock %}

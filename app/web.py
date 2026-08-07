@@ -7,10 +7,19 @@ from fastapi.responses import HTMLResponse, PlainTextResponse
 from fastapi.templating import Jinja2Templates
 
 from .crypto import SLUG_RE
+from .i18n import make_t, negotiate
 from .store import get_meta
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
+
+
+def _i18n_context(request: Request) -> dict:
+    lang = negotiate(request.headers.get("accept-language"))
+    return {"lang": lang, "t": make_t(lang)}
+
+
+templates = Jinja2Templates(directory=str(BASE_DIR / "templates"),
+                            context_processors=[_i18n_context])
 router = APIRouter()
 
 
@@ -112,9 +121,11 @@ def llms_txt(request: Request):
 
 @router.get("/privacy", response_class=HTMLResponse)
 def privacy(request: Request):
-    return templates.TemplateResponse(request, "privacy.html", {})
+    lang = negotiate(request.headers.get("accept-language"))
+    return templates.TemplateResponse(request, f"privacy-{lang}.html", {})
 
 
 @router.get("/legal", response_class=HTMLResponse)
 def legal(request: Request):
-    return templates.TemplateResponse(request, "legal.html", {})
+    lang = negotiate(request.headers.get("accept-language"))
+    return templates.TemplateResponse(request, f"legal-{lang}.html", {})

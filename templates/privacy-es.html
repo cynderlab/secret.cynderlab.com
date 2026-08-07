@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Política de privacidad — Cynderlab Secrets{% endblock %}
+{% block content %}
+<article class="explain">
+  <h1 class="mono">Política de privacidad</h1>
+  <p class="lede">Versión corta: hemos diseñado este servicio para que casi no haya nada
+  sobre ti que podamos tener.</p>
+
+  <h2>Qué guardamos</h2>
+  <ul>
+    <li><strong>El secreto cifrado</strong> (un blob AES-256-GCM), las fechas de creación y
+      caducidad, y si tiene frase de paso. Nunca tenemos la clave de descifrado: solo existe
+      en el enlace, así que no podemos leer tus secretos — por construcción, no por
+      promesa.</li>
+    <li><strong>Nada más en la base de datos.</strong> Ni cuentas, ni emails, ni direcciones
+      IP, ni cookies, ni analíticas, ni peticiones a terceros.</li>
+  </ul>
+
+  <h2>Qué procesamos de forma transitoria</h2>
+  <ul>
+    <li>Tu dirección IP, solo en memoria, para limitar la creación de secretos. Nunca se
+      escribe en la base de datos.</li>
+    <li>Logs estándar del servidor web (IP, ruta, hora) conservados brevemente por seguridad
+      y respuesta a abusos. Los enlaces de secretos llevan la clave tras el <code>#</code>,
+      que los navegadores nunca envían — las claves no pueden aparecer en los logs. Las
+      peticiones API llevan las claves en el cuerpo de la petición, que no se registra.</li>
+    <li>Si usas el endpoint <code>/api/secrets</code>, el texto en claro pasa por la memoria
+      del servidor durante el cifrado/descifrado y se descarta inmediatamente. Usa la web o
+      el endpoint <code>/encrypted</code> si prefieres que el servidor nunca vea el texto en
+      claro.</li>
+  </ul>
+
+  <h2>Retención</h2>
+  <p>Los secretos se borran en la primera lectura, al caducar (máximo 30 días), y una tarea
+  automática los barre cada hora. Borrado significa borrado: no hay copias de seguridad del
+  contenido de los secretos.</p>
+
+  <h2>Tus derechos y contacto</h2>
+  <p>Responsable del tratamiento: CYNDERLAB DIGITAL SL, Vic (Barcelona), España. Para
+  cualquier petición de privacidad (arts. 15–22 RGPD) escribe a
+  <a href="mailto:hola@cynderlab.com">hola@cynderlab.com</a>. Con este diseño, en la mayoría
+  de casos la respuesta honesta será: no tenemos ningún dato tuyo.</p>
+</article>
+{% endblock %}

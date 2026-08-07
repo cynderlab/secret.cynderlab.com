@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Política de privacitat — Cynderlab Secrets{% endblock %}
+{% block content %}
+<article class="explain">
+  <h1 class="mono">Política de privacitat</h1>
+  <p class="lede">Versió curta: hem dissenyat aquest servei perquè gairebé no hi hagi res
+  sobre tu que puguem tenir.</p>
+
+  <h2>Què guardem</h2>
+  <ul>
+    <li><strong>El secret xifrat</strong> (un blob AES-256-GCM), les dates de creació i
+      caducitat, i si té frase de pas. Mai tenim la clau de desxifrat: només existeix al link,
+      així que no podem llegir els teus secrets — per construcció, no per promesa.</li>
+    <li><strong>Res més a la base de dades.</strong> Ni comptes, ni emails, ni adreces IP,
+      ni cookies, ni analítiques, ni peticions a tercers.</li>
+  </ul>
+
+  <h2>Què processem de manera transitòria</h2>
+  <ul>
+    <li>La teva adreça IP, només en memòria, per limitar la creació de secrets. Mai s'escriu
+      a la base de dades.</li>
+    <li>Logs estàndard del servidor web (IP, ruta, hora) conservats breument per seguretat i
+      resposta a abusos. Els links de secrets porten la clau després del <code>#</code>, que
+      els navegadors mai envien — les claus no poden aparèixer als logs. Les peticions API
+      porten les claus al cos de la petició, que no es registra.</li>
+    <li>Si fas servir l'endpoint <code>/api/secrets</code>, el text en clar passa per la
+      memòria del servidor durant el xifrat/desxifrat i es descarta immediatament. Fes servir
+      la web o l'endpoint <code>/encrypted</code> si prefereixes que el servidor no vegi mai
+      el text en clar.</li>
+  </ul>
+
+  <h2>Retenció</h2>
+  <p>Els secrets s'esborren a la primera lectura, en caducar (màxim 30 dies), i una tasca
+  automàtica els escombra cada hora. Esborrat vol dir esborrat: no hi ha còpies de seguretat
+  del contingut dels secrets.</p>
+
+  <h2>Els teus drets i contacte</h2>
+  <p>Responsable del tractament: CYNDERLAB DIGITAL SL, Vic (Barcelona). Per a qualsevol
+  petició de privacitat (arts. 15–22 RGPD) escriu a
+  <a href="mailto:hola@cynderlab.com">hola@cynderlab.com</a>. Amb aquest disseny, en la
+  majoria de casos la resposta honesta serà: no tenim cap dada teva.</p>
+</article>
+{% endblock %}

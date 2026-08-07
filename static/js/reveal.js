@@ -3,7 +3,8 @@
   const $ = id => document.getElementById(id);
   const root = $("reveal-root");
   if (!root) return;
-  const slug = root.dataset.slug;
+  const M = root.dataset;    // translated strings rendered server-side
+  const slug = M.slug;
   const key = location.hash.slice(1);
   let needsPassphrase = false;
   let cached = null;    // {ciphertext, nonce} kept so a wrong passphrase can be retried locally
@@ -35,7 +36,7 @@
     $("reveal-error").hidden = true;
     $("reveal-btn").disabled = true;
     const passphrase = needsPassphrase ? $("reveal-passphrase").value : null;
-    if (needsPassphrase && !passphrase) return fail("Enter the passphrase first.");
+    if (needsPassphrase && !passphrase) return fail(M.errNeedPass);
     if (!cached) {
       const res = await fetch(`/api/secrets/${slug}/consume`, { method: "POST" });
       if (!res.ok) return notFound();
@@ -47,7 +48,7 @@
       show("state-secret");
     } catch (err) {
       if (needsPassphrase) {
-        fail("Wrong passphrase. The secret is already burned on the server, but you can retry here — do not close this tab.");
+        fail(M.errWrongPass);
       } else {
         notFound();
       }
@@ -57,8 +58,8 @@
   $("reveal-btn").addEventListener("click", reveal);
   $("copy-secret-btn").addEventListener("click", async () => {
     await navigator.clipboard.writeText($("secret-text").textContent);
-    $("copy-secret-btn").textContent = "Copied ✔";
-    setTimeout(() => { $("copy-secret-btn").textContent = "Copy secret"; }, 1500);
+    $("copy-secret-btn").textContent = M.copied;
+    setTimeout(() => { $("copy-secret-btn").textContent = M.copyLabel; }, 1500);
   });
   init();
 })();

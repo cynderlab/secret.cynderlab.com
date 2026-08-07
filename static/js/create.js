@@ -3,6 +3,7 @@
   const $ = id => document.getElementById(id);
   const form = $("create-form");
   if (!form) return;
+  const M = form.dataset;    // translated strings rendered server-side
 
   const MAX_BYTES = 262144;
   const expiry = $("expiry-input");
@@ -45,7 +46,7 @@
     $("create-btn").disabled = true;
     const secret = $("secret-input").value;
     if (new TextEncoder().encode(secret).length > MAX_BYTES) {
-      return fail("Secret exceeds 256 KB. Trim it or split it.");
+      return fail(M.errOversize);
     }
     const passphrase = $("passphrase-input").value || null;
     try {
@@ -62,29 +63,29 @@
           }),
         });
         if (res.status === 409) continue;          // slug collision: rebuild with a new slug
-        if (res.status === 429) return fail("Rate limit reached. Try again in a while.");
+        if (res.status === 429) return fail(M.errRate);
         if (!res.ok) {
           const body = await res.json().catch(() => ({}));
-          return fail(body.detail || `Could not store the secret (HTTP ${res.status}).`);
+          return fail(body.detail || M.errStore.replace("{status}", res.status));
         }
         const body = await res.json();
         const link = `${location.origin}/s/${slug}#${enc.key}`;
         $("result-link").textContent = link;
-        $("result-expiry").textContent = `# expires ${body.expires_at} if never read`;
+        $("result-expiry").textContent = M.expiresTpl.replace("{date}", body.expires_at);
         drawQr(link);
         form.hidden = true;
         $("result-panel").hidden = false;
         return;
       }
-      fail("Could not allocate a link. Try again.");
+      fail(M.errAlloc);
     } catch (err) {
-      fail("Encryption failed in this browser. It needs WebCrypto (any modern browser).");
+      fail(M.errCrypto);
     }
   });
 
   $("copy-btn").addEventListener("click", async () => {
     await navigator.clipboard.writeText($("result-link").textContent);
-    $("copy-btn").textContent = "Copied ✔";
-    setTimeout(() => { $("copy-btn").textContent = "Copy link"; }, 1500);
+    $("copy-btn").textContent = M.copied;
+    setTimeout(() => { $("copy-btn").textContent = M.copyLabel; }, 1500);
   });
 })();
