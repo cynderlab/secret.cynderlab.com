@@ -16,6 +16,6 @@ def load_settings() -> Settings:
         db_path=os.environ.get("SECRET_DB_PATH", "data/secrets.db"),
         base_url=os.environ.get("SECRET_BASE_URL", "http://127.0.0.1:8001").rstrip("/"),
         max_secret_bytes=int(os.environ.get("SECRET_MAX_BYTES", "262144")),
-        max_ttl_days=int(os.environ.get("SECRET_MAX_TTL_DAYS", "30")),
+        max_ttl_days=int(os.environ.get("SECRET_MAX_TTL_DAYS", "7")),
         rate_limit_per_hour=int(os.environ.get("SECRET_RATE_LIMIT_PER_HOUR", "20")),
     )

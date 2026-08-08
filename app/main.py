@@ -1,12 +1,18 @@
+import asyncio
+import contextlib
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from . import api, web
+from . import api, cleanup, web
 from .config import Settings, load_settings
 from .db import connect, migrate
 from .ratelimit import RateLimiter
+
+CLEANUP_INTERVAL_SECONDS = 3600
 
 SECURITY_HEADERS = {
     "Content-Security-Policy": (
@@ -70,7 +76,24 @@ def _error_handlers(application: FastAPI) -> None:
 
 def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or load_settings()
-    application = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
+
+    @asynccontextmanager
+    async def lifespan(app_: FastAPI):
+        # Expired secrets are swept by the process itself: once at startup,
+        # then hourly. No external cron or systemd timer needed.
+        async def sweeper():
+            while True:
+                await asyncio.to_thread(cleanup.run, app_.state.db)
+                await asyncio.sleep(CLEANUP_INTERVAL_SECONDS)
+
+        task = asyncio.create_task(sweeper())
+        yield
+        task.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await task
+
+    application = FastAPI(docs_url=None, redoc_url=None, openapi_url=None,
+                          lifespan=lifespan)
     application.state.settings = settings
     application.state.db = connect(settings.db_path)
     migrate(application.state.db)

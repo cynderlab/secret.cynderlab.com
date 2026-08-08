@@ -6,6 +6,7 @@
   const M = form.dataset;    // translated strings rendered server-side
 
   const MAX_BYTES = 262144;
+  const MAX_TTL_DAYS = parseInt(M.maxTtl, 10) || 7;
   const expiry = $("expiry-input");
   const today = new Date();
   const plusDays = d => {
@@ -14,7 +15,10 @@
     return x.toISOString().slice(0, 10);
   };
   expiry.min = plusDays(1);
-  expiry.max = plusDays(30);
+  expiry.max = plusDays(MAX_TTL_DAYS);
+  // Prefilled with the default self-destruct date so the lifetime is obvious;
+  // the calendar only allows bringing it forward.
+  expiry.value = plusDays(MAX_TTL_DAYS);
   // Open the calendar on click/focus so picking a date is one gesture.
   expiry.addEventListener("click", () => {
     try { expiry.showPicker(); } catch (e) { /* older browsers: native behaviour */ }

@@ -13,8 +13,9 @@ AES-256-GCM blob it cannot decrypt.
 - **Key in the URL, never on the server** — a stolen database is a pile of undecryptable blobs.
 - **Zero-knowledge web flow** — the browser encrypts with WebCrypto; the key travels in the
   URL fragment (`#`), which browsers never send to any server.
-- **Optional expiry** — calendar picker, 30-day maximum; expired secrets are never served and
-  are swept hourly.
+- **Self-destruct by default** — unread secrets vanish after 7 days; the prefilled calendar
+  picker only lets senders choose an earlier date. Expired secrets are never served and the
+  process itself sweeps them hourly (no cron, no timers).
 - **Optional passphrase, server-gated** — a second factor mixed into the key derivation. The
   server verifies a derived proof (never the passphrase itself) **before** releasing or
   burning anything: a typo never destroys a secret, and 5 failed attempts lock that secret
@@ -28,7 +29,7 @@ AES-256-GCM blob it cannot decrypt.
 Everything cryptographic happens in your browser (WebCrypto): key generation, encryption,
 decryption. The key rides in the URL fragment (`#`), which browsers never transmit, and the
 server only ever stores and serves encrypted blobs. Every secret is destroyed on first read
-and expires after at most 30 days. The database holds no keys, no plaintext, no IPs. Broken
+and expires after at most 7 days. The database holds no keys, no plaintext, no IPs. Broken
 links — missing key, expired, already read — all resolve to the same 404.
 
 ### Crypto scheme (`cynderlab.secret.v1`)
@@ -72,7 +73,7 @@ app/            config, db + migrations runner, crypto, store, api, web, ratelim
 migrations/     numbered .sql files, applied by `python -m app.migrate` (ExecStartPre)
 templates/      Jinja2 pages (home, how-it-works, reveal, legal, errors)
 static/         css, fonts (self-hosted), crypto.js/create.js/reveal.js
-deploy/         systemd user units + cleanup timer + nginx origin config
+deploy/         systemd user unit + nginx origin config
 tests/          70+ tests: crypto vectors, burn semantics, passphrase gate, api, i18n, pages
 ```
 
@@ -110,15 +111,17 @@ cp .env.example .env && $EDITOR .env
 uv sync --no-dev
 
 mkdir -p ~/.config/systemd/user
-cp deploy/secret-cynderlab.service deploy/secret-cynderlab-cleanup.service \
-   deploy/secret-cynderlab-cleanup.timer ~/.config/systemd/user/
+cp deploy/secret-cynderlab.service ~/.config/systemd/user/
 systemctl --user daemon-reload
-systemctl --user enable --now secret-cynderlab.service secret-cynderlab-cleanup.timer
+systemctl --user enable --now secret-cynderlab.service
 loginctl enable-linger "$USER"      # keep user services running after logout
 ```
 
-DB migrations run automatically in `ExecStartPre` on every (re)start. The timer purges
-expired secrets hourly and VACUUMs the database.
+DB migrations run automatically in `ExecStartPre` on every (re)start. The app itself sweeps
+expired secrets (at startup and hourly) and VACUUMs the database — no cron or timer needed.
+Upgrading from a version that shipped `secret-cynderlab-cleanup.timer`? Remove it:
+`systemctl --user disable --now secret-cynderlab-cleanup.timer` and delete both cleanup
+units from `~/.config/systemd/user/`.
 
 Upgrades: `git pull && uv sync --no-dev && systemctl --user restart secret-cynderlab.service`.
 

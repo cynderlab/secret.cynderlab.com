@@ -37,6 +37,24 @@ def test_create_rejects_expiry_beyond_max(client):
     assert r.status_code == 422
 
 
+def test_create_without_date_self_destructs_in_default_days(tmp_path):
+    from datetime import datetime, timezone
+
+    from fastapi.testclient import TestClient
+
+    from app.main import create_app
+    from conftest import make_settings
+
+    app = create_app(make_settings(tmp_path, max_ttl_days=7))
+    with TestClient(app) as client:
+        r = client.post("/api/secrets/encrypted", json=encrypted_payload())
+        assert r.status_code == 201
+        expires = datetime.strptime(r.json()["expires_at"], "%Y-%m-%dT%H:%M:%SZ").replace(
+            tzinfo=timezone.utc)
+        delta_days = (expires - datetime.now(timezone.utc)).total_seconds() / 86400
+        assert 6.9 < delta_days <= 7.01
+
+
 def test_create_accepts_valid_expiry_date(client):
     r = client.post("/api/secrets/encrypted",
                     json={**encrypted_payload(), "expires_at": "2026-08-20"})
