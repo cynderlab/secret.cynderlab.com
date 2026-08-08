@@ -14,6 +14,35 @@
 
   const states = ["state-loading", "state-ready", "state-secret"];
   function show(state) { for (const s of states) $(s).hidden = s !== state; }
+
+  // The decryption show: glyphs spin and lock left to right until the real
+  // plaintext stands. Whitespace is kept in place so the layout never jumps,
+  // and long secrets (>400 chars) skip the show — nobody wants to wait.
+  const GLYPHS = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789#$%&*+=?";
+  function decodeInto(el, finalText, done) {
+    const skip = matchMedia("(prefers-reduced-motion: reduce)").matches
+                 || finalText.length > 400;
+    if (skip) {
+      el.textContent = finalText;
+      if (done) done();
+      return;
+    }
+    const chars = [...finalText];
+    const frames = 26;                       // ~1s at 40ms/frame
+    let frame = 0;
+    const timer = setInterval(() => {
+      frame++;
+      const locked = Math.floor(chars.length * frame / frames);
+      el.textContent = chars.map((c, i) =>
+        (i < locked || /\s/.test(c)) ? c
+          : GLYPHS[Math.floor(Math.random() * GLYPHS.length)]).join("");
+      if (frame >= frames) {
+        clearInterval(timer);
+        el.textContent = finalText;
+        if (done) done();
+      }
+    }, 40);
+  }
   function fail(message, keepDisabled) {
     const el = $("reveal-error");
     el.textContent = message;
@@ -62,8 +91,9 @@
     try {
       const text = await CynderCrypto.decryptSecret(
         payload.ciphertext, payload.nonce, key, slug, passphrase);
-      $("secret-text").textContent = text;
       show("state-secret");
+      const stamp = document.querySelector(".burned-stamp");
+      decodeInto($("secret-text"), text, () => stamp.classList.add("slam"));
     } catch (err) {
       notFound();    // wrong link key: the passphrase was already proven correct
     }

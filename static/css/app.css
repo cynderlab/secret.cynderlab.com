@@ -150,6 +150,17 @@ pre.terminal { line-height: 1.5; }
     100% { top: 110%; opacity: 1; }
   }
   .qr-row:not([hidden]) .qr-caption { animation: fadeup .45s ease-out .5s both; }
+
+  /* ---- reveal show: plaintext decodes, then the burned stamp slams down ---- */
+  #state-secret:not([hidden]) .lede { animation: fadeup .45s ease-out .9s both; }
+  #state-secret:not([hidden]) .row { animation: fadeup .45s ease-out 1.15s both; }
+  #state-secret .burned-stamp { opacity: 0; }
+  #state-secret .burned-stamp.slam { animation: stampin .45s cubic-bezier(.2, 1.6, .4, 1) both; }
+  @keyframes stampin {
+    0%   { opacity: 0; transform: scale(2.4) rotate(-15deg); }
+    55%  { opacity: 1; transform: scale(.94) rotate(-1deg); }
+    100% { opacity: 1; transform: scale(1) rotate(-3deg); }
+  }
 }
 
 /* ---- 404: one friendly card, a link crumbling to ash ---- */
