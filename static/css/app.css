@@ -90,7 +90,16 @@ button.ghost-btn:hover { background: var(--panel); border-color: var(--cyan);
 .terminal p { margin-block: .35rem; }
 pre.terminal { line-height: 1.5; }
 
-.explain-link { margin-top: 2rem; text-align: center; }
+.steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;
+  margin-top: 3rem; padding: 0; }
+.steps li { list-style: none; border-top: 1px solid var(--line); padding-top: .9rem;
+  font-size: .95rem; color: var(--muted); }
+.steps li strong { color: var(--text); }
+.steps .n { display: block; color: var(--cyan); font-size: .85rem;
+  letter-spacing: .1em; margin-bottom: .4rem; }
+.home-coda { margin-top: 2.5rem; text-align: center; font-size: .95rem;
+  max-width: 34rem; margin-inline: auto; }
+@media (max-width: 720px) { .steps { grid-template-columns: 1fr; gap: 1rem; } }
 .explain { margin-top: 1rem; }
 .explain h2 { font-family: var(--mono); font-size: 1.3rem; margin: 2rem 0 .75rem; }
 .explain ol, .explain ul { padding-left: 1.25rem; display: grid; gap: .5rem;

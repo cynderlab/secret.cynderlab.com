@@ -114,9 +114,21 @@ def test_header_has_share_cta(client):
 
 def test_home_is_clean_of_explanations(client):
     r = client.get("/")
-    assert 'id="tab-human"' not in r.text        # explanation moved to its own page
+    assert 'id="tab-human"' not in r.text        # deep-dive lives on its own page
     assert 'id="create-form"' in r.text          # the form stays
-    assert '/how-it-works' in r.text             # header links to the new page
+    assert '/how-it-works' in r.text             # coda links to the deep dive
+
+
+def test_home_explains_the_three_steps(client):
+    r = client.get("/")
+    assert 'class="steps"' in r.text
+    for n in ("01", "02", "03"):
+        assert f'<span class="n mono">{n}</span>' in r.text
+    assert "gibberish" in r.text                 # step 1: encrypted before leaving
+    assert "Trust required: none" in r.text      # zero-trust coda
+    ca = client.get("/", headers={"accept-language": "ca"})
+    assert "galimaties" in ca.text
+    assert "Confiança necessària: cap" in ca.text
 
 
 def test_how_it_works_page_is_humans_only(client):

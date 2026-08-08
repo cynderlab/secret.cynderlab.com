@@ -56,7 +56,12 @@
   </div>
 </section>
 
-<p class="explain-link muted">{{ t('explain_link') | safe }}</p>
+<ol class="steps">
+  <li><span class="n mono">01</span>{{ t('home_step1') | safe }}</li>
+  <li><span class="n mono">02</span>{{ t('home_step2') | safe }}</li>
+  <li><span class="n mono">03</span>{{ t('home_step3') | safe }}</li>
+</ol>
+<p class="home-coda muted">{{ t('home_coda') | safe }}</p>
 {% endblock %}
 {% block scripts %}
 <script src="{{ static_url('js/vendor/qrcode.js') }}"></script>
