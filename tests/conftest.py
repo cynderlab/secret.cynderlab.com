@@ -33,7 +33,7 @@ def make_settings(tmp_path, **overrides) -> Settings:
         db_path=str(tmp_path / "test.db"),
         base_url="https://secret.test",
         max_secret_bytes=262144,
-        default_ttl_days=3,
+        default_ttl_days=1,
         max_ttl_days=30,
         rate_limit_per_hour=1000,     # effectively off; rate-limit tests override this
     )

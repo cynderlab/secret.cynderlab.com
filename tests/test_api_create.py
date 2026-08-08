@@ -45,7 +45,7 @@ def test_create_without_date_self_destructs_in_default_days(client):
     expires = datetime.strptime(r.json()["expires_at"], "%Y-%m-%dT%H:%M:%SZ").replace(
         tzinfo=timezone.utc)
     delta_days = (expires - datetime.now(timezone.utc)).total_seconds() / 86400
-    assert 2.9 < delta_days <= 3.01              # default is 3 days, max is 30
+    assert 0.99 < delta_days <= 1.01             # default is 1 day, max is 30
 
 
 def test_create_accepts_valid_expiry_date(client):
