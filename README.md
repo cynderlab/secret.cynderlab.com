@@ -98,7 +98,7 @@ Env-driven — see `.env.example`:
 | Variable | Default | Meaning |
 |---|---|---|
 | `SECRET_DB_PATH` | `data/secrets.db` | SQLite file location |
-| `SECRET_BASE_URL` | `http://127.0.0.1:8001` | Public base URL used in generated links |
+| `SECRET_BASE_URL` | `http://127.0.0.1:8001` | Public base URL for absolute social-card URLs (`og:url`, `og:image`) — links themselves are built in the browser |
 | `SECRET_MAX_BYTES` | `262144` | Max plaintext size (256 KB) |
 | `SECRET_DEFAULT_TTL_DAYS` | `3` | Self-destruct default when no date is picked |
 | `SECRET_MAX_TTL_DAYS` | `30` | Hard expiry ceiling, enforced server-side |

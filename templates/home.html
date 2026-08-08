@@ -10,6 +10,7 @@
   <form id="create-form" autocomplete="off"
         data-max-ttl="{{ max_ttl_days }}"
         data-default-ttl="{{ default_ttl_days }}"
+        data-max-bytes="{{ max_kb * 1024 }}"
         data-err-oversize="{{ t('err_oversize') }}"
         data-err-rate="{{ t('err_rate') }}"
         data-err-store="{{ t('err_store', status='{status}') }}"

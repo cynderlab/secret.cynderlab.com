@@ -5,7 +5,7 @@
   if (!form) return;
   const M = form.dataset;    // translated strings rendered server-side
 
-  const MAX_BYTES = 262144;
+  const MAX_BYTES = parseInt(M.maxBytes, 10) || 262144;
   const MAX_TTL_DAYS = parseInt(M.maxTtl, 10) || 30;
   const DEFAULT_TTL_DAYS = parseInt(M.defaultTtl, 10) || 3;
   const expiry = $("expiry-input");

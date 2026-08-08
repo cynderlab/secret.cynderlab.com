@@ -7,6 +7,7 @@ def test_home_renders(client):
         assert f'id="{element_id}"' in r.text
     assert 'data-max-ttl="30"' in r.text          # ceiling, JS builds the calendar with it
     assert 'data-default-ttl="3"' in r.text       # prefill value
+    assert 'data-max-bytes="262144"' in r.text    # JS size check follows the setting
     assert "self-destructs in 3 days" in r.text   # the expiry copy shows both values
     assert "up to 30" in r.text
 
