@@ -25,6 +25,15 @@
     try { expiry.showPicker(); } catch (e) { /* older browsers: native behaviour */ }
   });
 
+  // The full link lives only here (and in the clipboard once copied); the page
+  // shows a truncated version so a glance over the shoulder reveals nothing usable.
+  let fullLink = null;
+  let qrDrawn = false;
+
+  function truncated(slug, key) {
+    return `${location.host}/s/${slug.slice(0, 5)}…#${key.slice(0, 5)}…`;
+  }
+
   function fail(message) {
     const el = $("create-error");
     el.textContent = message;
@@ -79,10 +88,10 @@
           return fail(detail || M.errStore.replace("{status}", res.status));
         }
         const body = await res.json();
-        const link = `${location.origin}/s/${slug}#${enc.key}`;
-        $("result-link").textContent = link;
-        $("result-expiry").textContent = M.expiresTpl.replace("{date}", body.expires_at);
-        drawQr(link);
+        fullLink = `${location.origin}/s/${slug}#${enc.key}`;
+        $("result-link").textContent = truncated(slug, enc.key);
+        $("result-meta").textContent =
+          M.resultMeta.replace("{date}", body.expires_at.slice(0, 10));
         form.hidden = true;
         $("result-panel").hidden = false;
         return;
@@ -93,9 +102,21 @@
     }
   });
 
-  $("copy-btn").addEventListener("click", async () => {
-    await navigator.clipboard.writeText($("result-link").textContent);
+  async function copyLink() {
+    if (!fullLink) return;
+    await navigator.clipboard.writeText(fullLink);
     $("copy-btn").textContent = M.copied;
     setTimeout(() => { $("copy-btn").textContent = M.copyLabel; }, 1500);
+  }
+  $("copy-btn").addEventListener("click", copyLink);
+  $("result-link").addEventListener("click", copyLink);   // the pill copies too
+
+  $("qr-toggle").addEventListener("click", () => {
+    const box = $("qr-box");
+    if (box.hidden && !qrDrawn) {
+      drawQr(fullLink);
+      qrDrawn = true;
+    }
+    box.hidden = !box.hidden;
   });
 })();

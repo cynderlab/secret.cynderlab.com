@@ -69,6 +69,16 @@ button:hover { background: var(--cyan-bright); border-color: var(--cyan-bright);
 .error { color: var(--ember); margin-top: .75rem; }
 
 .terminal { margin-top: 1.5rem; overflow-x: auto; }
+.link-pill { display: block; width: 100%; text-align: left; margin-block: .75rem;
+  background: var(--bg); color: var(--cyan-bright); border: 1px dashed var(--cyan);
+  border-radius: 8px; padding: .8rem 1rem; font-size: 1.05rem; letter-spacing: .02em;
+  cursor: copy; word-break: break-all; font-weight: 400; }
+.link-pill:hover { background: var(--panel); border-style: solid; color: var(--cyan-bright); }
+.result-meta { margin-bottom: .5rem; }
+.grow { flex: 1; }
+button.ghost-btn { background: none; color: var(--cyan); border: 1px solid var(--line); }
+button.ghost-btn:hover { background: var(--panel); border-color: var(--cyan);
+  color: var(--cyan-bright); }
 .qr-row { display: flex; gap: 1.25rem; align-items: center; margin-top: 1rem;
   flex-wrap: wrap; }
 .qr-tile { background: #FFFFFF; padding: 12px; border-radius: 10px; line-height: 0;

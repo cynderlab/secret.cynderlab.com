@@ -34,6 +34,16 @@ def test_home_has_qr_slot_for_generated_link(client):
     assert "/static/js/vendor/qrcode.js" in r.text
 
 
+def test_result_panel_is_minimal(client):
+    r = client.get("/")
+    assert 'id="result-link"' in r.text           # truncated, click-to-copy pill
+    assert 'id="result-meta"' in r.text           # one condensed info line
+    assert 'id="qr-toggle"' in r.text             # QR folded behind a button
+    assert 'id="qr-box"' in r.text
+    assert 'id="result-expiry"' not in r.text     # old verbose lines are gone
+    assert "READS LEFT" not in r.text
+
+
 def test_static_urls_are_content_versioned(client):
     r = client.get("/")
     assert "/static/css/app.css?v=" in r.text

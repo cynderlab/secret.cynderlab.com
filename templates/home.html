@@ -18,7 +18,7 @@
         data-err-invalid="{{ t('err_invalid') }}"
         data-copied="{{ t('copied') }}"
         data-copy-label="{{ t('btn_copy') }}"
-        data-expires-tpl="{{ t('expires_tpl', date='{date}') }}">
+        data-result-meta="{{ t('result_meta', date='{date}') }}">
     <label class="mono" for="secret-input">{{ t('form_label') }}</label>
     <textarea id="secret-input" rows="8" required
       placeholder="{{ t('ph_secret', kb=max_kb) }}"></textarea>
@@ -38,18 +38,19 @@
 
   <div id="result-panel" class="terminal" hidden>
     <p class="mono muted">{{ t('result_stored') }}</p>
-    <p class="mono link-line"><output id="result-link"></output></p>
-    <p class="mono ember">{{ t('result_reads') }}</p>
-    <p class="mono muted" id="result-expiry"></p>
-    <div class="qr-row">
+    <button type="button" id="result-link" class="link-pill mono"
+            title="{{ t('btn_copy') }}"></button>
+    <p class="mono ember result-meta" id="result-meta"></p>
+    <div class="row">
+      <button type="button" id="copy-btn" class="grow">{{ t('btn_copy') }}</button>
+      <button type="button" id="qr-toggle" class="ghost-btn">QR</button>
+      <a href="/" class="ghost-btn">{{ t('btn_new') }}</a>
+    </div>
+    <div id="qr-box" class="qr-row" hidden>
       <div class="qr-tile">
         <img id="result-qr" alt="QR" width="148" height="148">
       </div>
       <p class="mono muted qr-caption">{{ t('qr_caption') | safe }}</p>
-    </div>
-    <div class="row">
-      <button type="button" id="copy-btn">{{ t('btn_copy') }}</button>
-      <a href="/" class="ghost-btn">{{ t('btn_new') }}</a>
     </div>
   </div>
 </section>
