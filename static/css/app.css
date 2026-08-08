@@ -81,6 +81,7 @@ button.ghost-btn:hover { background: var(--panel); border-color: var(--cyan);
   color: var(--cyan-bright); }
 .qr-row { display: flex; gap: 1.25rem; align-items: center; margin-top: 1rem;
   flex-wrap: wrap; }
+.qr-row[hidden] { display: none; }   /* author display beats the UA hidden rule */
 .qr-tile { background: #FFFFFF; padding: 12px; border-radius: 10px; line-height: 0;
   box-shadow: 0 0 0 1px var(--line), 0 0 24px rgba(44, 185, 221, .12); }
 .qr-tile img { width: 148px; height: 148px; image-rendering: pixelated; }
