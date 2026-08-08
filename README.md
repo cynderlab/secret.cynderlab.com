@@ -116,6 +116,11 @@ uv run uvicorn app.main:app --port 8001 --reload
 matches the Python side. `bash e2e_check.sh` spins up a local instance and smoke-tests pages,
 headers and the full secret flow, including the passphrase gate (`gate_e2e.py`).
 
+`uv run python scripts/gen_sbom.py` regenerates [`sbom.json`](sbom.json) — a CycloneDX 1.6
+software bill of materials covering every locked Python dependency (runtime vs dev scope
+resolved from the `uv.lock` graph, extras included), the vendored `qrcode-generator` and the
+bundled fonts, each with its SHA-256. Rerun it after any dependency change.
+
 ## Deployment (systemd --user)
 
 ```bash
