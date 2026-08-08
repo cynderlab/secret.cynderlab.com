@@ -6,7 +6,8 @@
   const M = form.dataset;    // translated strings rendered server-side
 
   const MAX_BYTES = 262144;
-  const MAX_TTL_DAYS = parseInt(M.maxTtl, 10) || 7;
+  const MAX_TTL_DAYS = parseInt(M.maxTtl, 10) || 30;
+  const DEFAULT_TTL_DAYS = parseInt(M.defaultTtl, 10) || 3;
   const expiry = $("expiry-input");
   const today = new Date();
   const plusDays = d => {
@@ -16,9 +17,9 @@
   };
   expiry.min = plusDays(1);
   expiry.max = plusDays(MAX_TTL_DAYS);
-  // Prefilled with the default self-destruct date so the lifetime is obvious;
-  // the calendar only allows bringing it forward.
-  expiry.value = plusDays(MAX_TTL_DAYS);
+  // Prefilled with the default self-destruct date so the lifetime is obvious.
+  // These bounds are UX only — the backend re-validates everything.
+  expiry.value = plusDays(DEFAULT_TTL_DAYS);
   // Open the calendar on click/focus so picking a date is one gesture.
   expiry.addEventListener("click", () => {
     try { expiry.showPicker(); } catch (e) { /* older browsers: native behaviour */ }
@@ -72,7 +73,10 @@
         if (res.status === 429) return fail(M.errRate);
         if (!res.ok) {
           const body = await res.json().catch(() => ({}));
-          return fail(body.detail || M.errStore.replace("{status}", res.status));
+          // detail is a string for our checks, a list for schema violations
+          const detail = typeof body.detail === "string" ? body.detail : null;
+          if (res.status === 422 && !detail) return fail(M.errInvalid);
+          return fail(detail || M.errStore.replace("{status}", res.status));
         }
         const body = await res.json();
         const link = `${location.origin}/s/${slug}#${enc.key}`;

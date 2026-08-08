@@ -10,7 +10,7 @@ from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field
 
 from . import crypto, store
 from .config import Settings
@@ -26,24 +26,30 @@ def enforce_create_limit(request: Request) -> None:
                             headers={"Retry-After": str(retry_after)})
 
 
+# Don't trust, verify: every client-supplied value is bounded and checked here,
+# regardless of what the UI enforces. Unknown fields are rejected outright.
 class CreateEncrypted(BaseModel):
-    slug: str
-    ciphertext: str
-    nonce: str
+    model_config = ConfigDict(extra="forbid")
+
+    slug: str = Field(min_length=22, max_length=22)
+    ciphertext: str = Field(min_length=23, max_length=360_000)   # b64u(tag+1B .. 256KB+tag)
+    nonce: str = Field(min_length=16, max_length=16)             # b64u of exactly 12 bytes
     has_passphrase: bool = False
-    verifier: str | None = None
-    expires_at: str | None = None
+    verifier: str | None = Field(default=None, min_length=43, max_length=43)
+    expires_at: str | None = Field(default=None, min_length=10, max_length=20)
 
 
 class ConsumeRequest(BaseModel):
-    verifier: str | None = None
+    model_config = ConfigDict(extra="forbid")
+
+    verifier: str | None = Field(default=None, min_length=43, max_length=43)
 
 
-def parse_expiry(raw: str | None, max_ttl_days: int) -> str:
+def parse_expiry(raw: str | None, default_ttl_days: int, max_ttl_days: int) -> str:
     now = store.utcnow()
     latest = now + timedelta(days=max_ttl_days)
     if raw is None:
-        return store.iso(latest)
+        return store.iso(now + timedelta(days=default_ttl_days))
     try:
         if len(raw) == 10:  # YYYY-MM-DD -> end of that day, UTC
             dt = datetime.strptime(raw, "%Y-%m-%d").replace(
@@ -75,7 +81,11 @@ def create_secret_encrypted(body: CreateEncrypted, request: Request):
         raise HTTPException(422, "slug must match ^[A-Za-z0-9_-]{22}$")
     ciphertext = _b64u_or_422("ciphertext", body.ciphertext)
     nonce = _b64u_or_422("nonce", body.nonce)
-    if len(ciphertext) > settings.max_secret_bytes + 16:  # GCM tag overhead
+    if len(nonce) != 12:
+        raise HTTPException(422, "nonce must decode to exactly 12 bytes")
+    if len(ciphertext) < 17:  # GCM tag (16) + at least one byte of content
+        raise HTTPException(422, "ciphertext is too short to be a valid encrypted secret")
+    if len(ciphertext) > settings.max_secret_bytes + 16:
         raise HTTPException(413, f"ciphertext exceeds {settings.max_secret_bytes} bytes")
     verifier_hash = None
     if body.has_passphrase:
@@ -85,8 +95,11 @@ def create_secret_encrypted(body: CreateEncrypted, request: Request):
         if len(verifier) != 32:
             raise HTTPException(422, "verifier must decode to 32 bytes")
         verifier_hash = hashlib.sha256(verifier).digest()
+    elif body.verifier is not None:
+        raise HTTPException(422, "verifier without has_passphrase makes no sense")
     try:
-        expires_at = parse_expiry(body.expires_at, settings.max_ttl_days)
+        expires_at = parse_expiry(body.expires_at, settings.default_ttl_days,
+                                  settings.max_ttl_days)
     except ValueError as e:
         raise HTTPException(422, str(e))
     try:
@@ -99,6 +112,8 @@ def create_secret_encrypted(body: CreateEncrypted, request: Request):
 
 @router.get("/secrets/{slug}")
 def secret_meta(slug: str, request: Request):
+    if not crypto.SLUG_RE.fullmatch(slug):
+        raise HTTPException(404, "secret not found: never existed, expired, or already read")
     row = store.get_meta(request.app.state.db, slug)
     if row is None:
         raise HTTPException(404, "secret not found: never existed, expired, or already read")
@@ -108,6 +123,8 @@ def secret_meta(slug: str, request: Request):
 
 @router.post("/secrets/{slug}/consume")
 def consume(slug: str, request: Request, body: ConsumeRequest | None = None):
+    if not crypto.SLUG_RE.fullmatch(slug):
+        raise HTTPException(404, "secret not found: never existed, expired, or already read")
     conn = request.app.state.db
     auth = store.get_auth(conn, slug)
     if auth is None:

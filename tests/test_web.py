@@ -5,8 +5,10 @@ def test_home_renders(client):
     for element_id in ("secret-input", "expiry-input", "passphrase-input",
                       "create-btn", "result-panel"):
         assert f'id="{element_id}"' in r.text
-    assert 'data-max-ttl="30"' in r.text          # test settings use 30; JS reads this
-    assert "self-destructs in 30 days" in r.text  # the new expiry copy
+    assert 'data-max-ttl="30"' in r.text          # ceiling, JS builds the calendar with it
+    assert 'data-default-ttl="3"' in r.text       # prefill value
+    assert "self-destructs in 3 days" in r.text   # the expiry copy shows both values
+    assert "up to 30" in r.text
 
 
 def test_footer_links(client):

@@ -13,9 +13,10 @@ AES-256-GCM blob it cannot decrypt.
 - **Key in the URL, never on the server** — a stolen database is a pile of undecryptable blobs.
 - **Zero-knowledge web flow** — the browser encrypts with WebCrypto; the key travels in the
   URL fragment (`#`), which browsers never send to any server.
-- **Self-destruct by default** — unread secrets vanish after 7 days; the prefilled calendar
-  picker only lets senders choose an earlier date. Expired secrets are never served and the
-  process itself sweeps them hourly (no cron, no timers).
+- **Self-destruct by default** — unread secrets vanish after 3 days; the prefilled calendar
+  lets senders pick any date up to a 30-day hard maximum, and the backend re-validates every
+  value it receives (don't trust, verify). Expired secrets are never served and the process
+  itself sweeps them hourly (no cron, no timers).
 - **Optional passphrase, server-gated** — a second factor mixed into the key derivation. The
   server verifies a derived proof (never the passphrase itself) **before** releasing or
   burning anything: a typo never destroys a secret, and 5 failed attempts lock that secret
@@ -29,7 +30,8 @@ AES-256-GCM blob it cannot decrypt.
 Everything cryptographic happens in your browser (WebCrypto): key generation, encryption,
 decryption. The key rides in the URL fragment (`#`), which browsers never transmit, and the
 server only ever stores and serves encrypted blobs. Every secret is destroyed on first read
-and expires after at most 7 days. The database holds no keys, no plaintext, no IPs. Broken
+and expires after 3 days by default (30 at most). The database holds no keys, no plaintext,
+no IPs. Broken
 links — missing key, expired, already read — all resolve to the same 404.
 
 ### Crypto scheme (`cynderlab.secret.v1`)
@@ -86,7 +88,8 @@ Env-driven — see `.env.example`:
 | `SECRET_DB_PATH` | `data/secrets.db` | SQLite file location |
 | `SECRET_BASE_URL` | `http://127.0.0.1:8001` | Public base URL used in generated links |
 | `SECRET_MAX_BYTES` | `262144` | Max plaintext size (256 KB) |
-| `SECRET_MAX_TTL_DAYS` | `30` | Expiry ceiling and default |
+| `SECRET_DEFAULT_TTL_DAYS` | `3` | Self-destruct default when no date is picked |
+| `SECRET_MAX_TTL_DAYS` | `30` | Hard expiry ceiling, enforced server-side |
 | `SECRET_RATE_LIMIT_PER_HOUR` | `20` | Creations per IP per hour |
 
 ## Development

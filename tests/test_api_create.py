@@ -37,22 +37,15 @@ def test_create_rejects_expiry_beyond_max(client):
     assert r.status_code == 422
 
 
-def test_create_without_date_self_destructs_in_default_days(tmp_path):
+def test_create_without_date_self_destructs_in_default_days(client):
     from datetime import datetime, timezone
 
-    from fastapi.testclient import TestClient
-
-    from app.main import create_app
-    from conftest import make_settings
-
-    app = create_app(make_settings(tmp_path, max_ttl_days=7))
-    with TestClient(app) as client:
-        r = client.post("/api/secrets/encrypted", json=encrypted_payload())
-        assert r.status_code == 201
-        expires = datetime.strptime(r.json()["expires_at"], "%Y-%m-%dT%H:%M:%SZ").replace(
-            tzinfo=timezone.utc)
-        delta_days = (expires - datetime.now(timezone.utc)).total_seconds() / 86400
-        assert 6.9 < delta_days <= 7.01
+    r = client.post("/api/secrets/encrypted", json=encrypted_payload())
+    assert r.status_code == 201
+    expires = datetime.strptime(r.json()["expires_at"], "%Y-%m-%dT%H:%M:%SZ").replace(
+        tzinfo=timezone.utc)
+    delta_days = (expires - datetime.now(timezone.utc)).total_seconds() / 86400
+    assert 2.9 < delta_days <= 3.01              # default is 3 days, max is 30
 
 
 def test_create_accepts_valid_expiry_date(client):
@@ -72,6 +65,52 @@ def test_create_rejects_bad_slug(client):
     r = client.post("/api/secrets/encrypted", json={
         "slug": "../etc/passwd", "ciphertext": "YQ", "nonce": "YQ"})
     assert r.status_code == 422
+
+
+def test_create_rejects_garbage_expiry(client):
+    for bad in ("not-a-date", "2026-13-45", "2026-08-20T99:99:99Z", "20260820"):
+        r = client.post("/api/secrets/encrypted",
+                        json={**encrypted_payload(), "expires_at": bad})
+        assert r.status_code == 422, bad
+
+
+def test_create_rejects_wrong_nonce_length(client):
+    from app import crypto
+    payload = encrypted_payload()
+    payload["nonce"] = crypto.b64u_encode(b"short")        # not 12 bytes
+    assert client.post("/api/secrets/encrypted", json=payload).status_code == 422
+
+
+def test_create_rejects_impossible_ciphertext(client):
+    payload = encrypted_payload()
+    payload["ciphertext"] = crypto.b64u_encode(b"tiny")    # smaller than a GCM tag
+    assert client.post("/api/secrets/encrypted", json=payload).status_code == 422
+
+
+def test_create_rejects_verifier_without_passphrase(client):
+    payload = encrypted_payload()
+    payload["verifier"] = crypto.b64u_encode(b"v" * 32)
+    payload["has_passphrase"] = False
+    assert client.post("/api/secrets/encrypted", json=payload).status_code == 422
+
+
+def test_create_rejects_unknown_fields(client):
+    payload = {**encrypted_payload(), "evil_extra": "field"}
+    assert client.post("/api/secrets/encrypted", json=payload).status_code == 422
+
+
+def test_create_rejects_oversized_body_before_parsing(client):
+    huge = "x" * 600_000                                   # > body cap, junk on purpose
+    r = client.post("/api/secrets/encrypted",
+                    content='{"slug": "' + huge + '"}',
+                    headers={"content-type": "application/json"})
+    assert r.status_code == 413
+
+
+def test_meta_and_consume_reject_malformed_slugs(client):
+    for slug in ("short", "x" * 23, "in%76alid+slug!!!!!!!!"):
+        assert client.get(f"/api/secrets/{slug}").status_code == 404
+        assert client.post(f"/api/secrets/{slug}/consume").status_code == 404
 
 
 def test_server_side_plaintext_endpoints_are_gone(client):

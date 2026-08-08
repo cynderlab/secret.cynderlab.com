@@ -9,11 +9,13 @@
 <section class="creator">
   <form id="create-form" autocomplete="off"
         data-max-ttl="{{ max_ttl_days }}"
+        data-default-ttl="{{ default_ttl_days }}"
         data-err-oversize="{{ t('err_oversize') }}"
         data-err-rate="{{ t('err_rate') }}"
         data-err-store="{{ t('err_store', status='{status}') }}"
         data-err-alloc="{{ t('err_alloc') }}"
         data-err-crypto="{{ t('err_crypto') }}"
+        data-err-invalid="{{ t('err_invalid') }}"
         data-copied="{{ t('copied') }}"
         data-copy-label="{{ t('btn_copy') }}"
         data-expires-tpl="{{ t('expires_tpl', date='{date}') }}">
@@ -22,7 +24,7 @@
       placeholder="{{ t('ph_secret', kb=max_kb) }}"></textarea>
     <div class="options">
       <div class="option">
-        <label for="expiry-input">{{ t('label_expiry') }} <span class="muted">{{ t('note_expiry', days=max_ttl_days) }}</span></label>
+        <label for="expiry-input">{{ t('label_expiry') }} <span class="muted">{{ t('note_expiry', default=default_ttl_days, max=max_ttl_days) }}</span></label>
         <input type="date" id="expiry-input">
       </div>
       <div class="option">

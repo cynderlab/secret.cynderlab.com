@@ -43,6 +43,7 @@ templates.env.globals["static_url"] = static_url
 def home(request: Request):
     settings = request.app.state.settings
     return templates.TemplateResponse(request, "home.html", {
+        "default_ttl_days": settings.default_ttl_days,
         "max_ttl_days": settings.max_ttl_days,
         "max_kb": settings.max_secret_bytes // 1024,
     })

@@ -40,6 +40,20 @@ def _error_context(request, status: int, detail) -> dict:
     return {"status": status, "heading": t("err_generic_h"), "message": str(detail)}
 
 
+def _body_size_guard(application: FastAPI, max_secret_bytes: int) -> None:
+    # b64 inflates 4/3 and JSON adds envelope; anything beyond this cap is
+    # rejected before FastAPI even parses the body.
+    cap = max_secret_bytes * 4 // 3 + 131_072
+
+    @application.middleware("http")
+    async def reject_oversized_bodies(request, call_next):
+        if request.method == "POST" and request.url.path.startswith("/api/"):
+            length = request.headers.get("content-length", "0")
+            if not length.isdigit() or int(length) > cap:
+                return JSONResponse({"detail": "request body too large"}, status_code=413)
+        return await call_next(request)
+
+
 def _security_headers_middleware(application: FastAPI) -> None:
     @application.middleware("http")
     async def add_security_headers(request, call_next):
@@ -105,6 +119,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     application.include_router(web.router)
     application.mount("/static", StaticFiles(directory=str(web.BASE_DIR / "static")),
                       name="static")
+    _body_size_guard(application, settings.max_secret_bytes)
     _security_headers_middleware(application)
     _error_handlers(application)
     return application
