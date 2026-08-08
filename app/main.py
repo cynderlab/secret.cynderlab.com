@@ -83,7 +83,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         # then hourly. No external cron or systemd timer needed.
         async def sweeper():
             while True:
-                await asyncio.to_thread(cleanup.run, app_.state.db)
+                deleted = await asyncio.to_thread(cleanup.run, app_.state.db)
+                if deleted:
+                    print(f"sweep: purged {deleted} expired secret(s)", flush=True)
                 await asyncio.sleep(CLEANUP_INTERVAL_SECONDS)
 
         task = asyncio.create_task(sweeper())
