@@ -52,6 +52,18 @@ Implemented twice — `app/crypto.py` (server) and `static/js/crypto.js` (browse
 together by a pinned test vector (`tests/test_crypto.py`) plus `verify_crypto.mjs`, a Node
 script that encrypts in JS and decrypts in Python.
 
+#### Why the browser generates the slug (design decision)
+
+The slug must exist **before** encryption: it is the AES-GCM AAD (binds each blob to its
+slug) and the PBKDF2 salt for both the passphrase key and the verifier. Server-side
+generation would force a two-phase reserve-then-upload flow with orphan state to clean up —
+for zero benefit: the slug carries 128 random bits, so collisions need ~2⁶⁴ secrets, and
+they are handled anyway (slug is the SQLite `PRIMARY KEY`; a duplicate `INSERT` returns
+**409** and the client retries with a fresh slug). The server validates everything
+verifiable about a slug — exact length, base64url charset, uniqueness; entropy of a single
+value is unverifiable, but a client sending a hand-picked slug only makes *its own* link
+guessable, and can never collide with or overwrite anyone else's secret.
+
 ## Transport endpoints (browser only)
 
 The server exposes only ciphertext transport — every byte of plaintext and every key stays
