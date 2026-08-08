@@ -65,6 +65,7 @@
     return td.decode(pt);
   }
 
-  window.CynderCrypto = { b64uEncode, b64uDecode, randomBytes, newSlug,
-                          deriveAesKey, deriveVerifier, encryptSecret, decryptSecret };
+  // Public surface = exactly what the pages and verify_crypto.mjs consume.
+  window.CynderCrypto = { b64uEncode, newSlug, deriveVerifier,
+                          encryptSecret, decryptSecret };
 })();

@@ -86,7 +86,6 @@ button.ghost-btn:hover { background: var(--panel); border-color: var(--cyan);
 .qr-tile img { width: 148px; height: 148px; image-rendering: pixelated; }
 .qr-caption { font-size: .8rem; line-height: 1.5; }
 .terminal p { margin-block: .35rem; }
-.link-line output { word-break: break-all; color: var(--cyan-bright); }
 pre.terminal { line-height: 1.5; }
 
 .explain-link { margin-top: 2rem; text-align: center; }

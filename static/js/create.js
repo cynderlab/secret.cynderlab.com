@@ -49,8 +49,9 @@
       qr.addData(link);
       qr.make();
       $("result-qr").src = qr.createDataURL(4, 0);
+      return true;
     } catch (e) {
-      document.querySelector(".qr-row").hidden = true;   // link still works without it
+      return false;                    // the link still works without a QR
     }
   }
 
@@ -114,7 +115,10 @@
   $("qr-toggle").addEventListener("click", () => {
     const box = $("qr-box");
     if (box.hidden && !qrDrawn) {
-      drawQr(fullLink);
+      if (!drawQr(fullLink)) {
+        $("qr-toggle").hidden = true;  // can't draw it: remove the offer entirely
+        return;
+      }
       qrDrawn = true;
     }
     box.hidden = !box.hidden;
