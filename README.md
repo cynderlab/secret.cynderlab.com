@@ -80,7 +80,10 @@ There is deliberately no endpoint that accepts or returns plaintext.
 ## Stack
 
 FastAPI · SQLite (stdlib `sqlite3`, WAL, no ORM) · Jinja2 · vanilla JS + WebCrypto ·
-`cryptography` · uv · pytest. One process, one worker, no external services.
+uv · pytest. One process, one worker, no external services. The production server performs
+**no cryptography at all** — every encrypt/decrypt runs in the browser; the Python
+`cryptography` package is a dev-only dependency used by the test-suite mirror
+(`app/crypto.py`) that impersonates a browser.
 
 ```
 app/            config, db + migrations runner, crypto, store, api, web, ratelimit, cleanup
