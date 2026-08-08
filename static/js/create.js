@@ -34,6 +34,32 @@
     return `${location.host}/s/${slug.slice(0, 5)}…#${key.slice(0, 5)}…`;
   }
 
+  // The forging show: characters spin like tumblers and lock into place left to
+  // right until the link is fully formed. Pure cosmetics — the real link is
+  // already sitting in `fullLink` before the first frame.
+  const GLYPHS = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789_-#/·";
+  function forgeInto(el, finalText, done) {
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      el.textContent = finalText;
+      if (done) done();
+      return;
+    }
+    const chars = [...finalText];
+    const frames = 26;                       // ~1s at 40ms/frame
+    let frame = 0;
+    const timer = setInterval(() => {
+      frame++;
+      const locked = Math.floor(chars.length * frame / frames);
+      el.textContent = chars.map((c, i) =>
+        i < locked ? c : GLYPHS[Math.floor(Math.random() * GLYPHS.length)]).join("");
+      if (frame >= frames) {
+        clearInterval(timer);
+        el.textContent = finalText;
+        if (done) done();
+      }
+    }, 40);
+  }
+
   function fail(message) {
     const el = $("create-error");
     el.textContent = message;
@@ -90,11 +116,12 @@
         }
         const body = await res.json();
         fullLink = `${location.origin}/s/${slug}#${enc.key}`;
-        $("result-link").textContent = truncated(slug, enc.key);
         $("result-meta").textContent =
           M.resultMeta.replace("{date}", body.expires_at.slice(0, 10));
         form.hidden = true;
         $("result-panel").hidden = false;
+        const pill = $("result-link");
+        forgeInto(pill, truncated(slug, enc.key), () => pill.classList.add("locked"));
         return;
       }
       fail(M.errAlloc);
