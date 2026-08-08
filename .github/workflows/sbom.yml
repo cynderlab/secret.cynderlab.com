@@ -1,0 +1,44 @@
+# Regenerates the CycloneDX SBOM on every push to main and publishes it as a
+# rolling release asset (tag: sbom-latest). Loop-safe by design: nothing is
+# ever committed back to the repo, and the push trigger filters on branches,
+# so the tag/release this job touches can never re-trigger it.
+name: sbom
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write        # create/update the sbom-latest release
+
+concurrency:
+  group: sbom
+  cancel-in-progress: true
+
+jobs:
+  sbom:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # The generator is stdlib-only (tomllib needs Python >= 3.11, which
+      # ubuntu-latest ships) — no dependency install, nothing to cache.
+      - name: Generate SBOM
+        run: python3 scripts/gen_sbom.py
+
+      - name: Keep a per-run copy (workflow artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-${{ github.sha }}
+          path: sbom.json
+
+      - name: Publish to the rolling release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view sbom-latest --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 || \
+            gh release create sbom-latest --repo "$GITHUB_REPOSITORY" --prerelease \
+              --title "SBOM (rolling)" --notes "placeholder"
+          gh release upload sbom-latest sbom.json --repo "$GITHUB_REPOSITORY" --clobber
+          gh release edit sbom-latest --repo "$GITHUB_REPOSITORY" --prerelease \
+            --notes "CycloneDX 1.6 SBOM regenerated from \`${GITHUB_SHA}\` on $(date -u +%Y-%m-%dT%H:%M:%SZ). Always reflects the current \`main\`."

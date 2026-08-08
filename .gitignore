@@ -224,3 +224,4 @@ data/
 *.db-wal
 *.db-shm
 .claude/
+sbom.json
